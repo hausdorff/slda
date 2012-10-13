@@ -45,6 +45,25 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   
   // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
+  var wAssignedZ = Array.fill(T, wIdx.size)(0)
+  
+  /** Initializes wAssignedZ; produces TxW matrix, where T is the number
+   * of topics, and W is the size of the vocabulary. `wAssignedZ(i)(j)`
+   * will return the number of times word `w(j)`, is assigned topic `z(i)`.
+   */
+  private def initWAssignedZ (w: Array[String], z: Array[Int],
+			      wIdx: HashMap[String,Int]) = {
+    @tailrec
+    def loop (i: Int, wAssignedZ: Array[Array[Int]]): Array[Array[Int]] = {
+      if (i >= w.length) wAssignedZ
+      else {
+	wAssignedZ(z(i))(i) += 1
+	loop(i+1, wAssignedZ)
+      }
+    }
+    var wAssignedZ = Array.fill(T, wIdx.size)(0)
+    loop(0, wAssignedZ)
+  }
   
   /** Maps words to canonical indices; useful for maintaining word counts
    * over sets or subsets of documents.
