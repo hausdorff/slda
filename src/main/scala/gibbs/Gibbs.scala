@@ -71,6 +71,6 @@ object TestGibbs {
 				3, 0.3)
     println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
     println("d: " + cg.d.deep.mkString(" "))
-    println("r: " + cg.r.deep.mkString(" "))
+    println("z: " + cg.z.deep.mkString(" "))
   }
 }
