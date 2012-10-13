@@ -68,7 +68,7 @@ object TestGibbs {
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
     val cg = new CollapsedGibbs(Array("cows are green", "birds are blue"),
-				3, 0.3, 0.3)
+				3, 0.3)
     println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
     println("d: " + cg.d.deep.mkString(" "))
     println("r: " + cg.r.deep.mkString(" "))
