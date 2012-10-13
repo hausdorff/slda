@@ -3,7 +3,10 @@
 
 package gibbs
 
+import scala.annotation.tailrec
+
 import scala.util.{ Random => Random }
+import scala.collection.mutable.{ HashMap => HashMap }
 
 /** A simple Gibbs sampler interface
  *
@@ -39,6 +42,26 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   val (w, d) = Text.bow(docs)
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
+  
+  // BOOKKEEPING VARIABLES
+  val wIdx = canonicalWordIndices(w)
+  
+  /** Maps words to canonical indices; useful for maintaining word counts
+   * over sets or subsets of documents.
+   */
+  private def canonicalWordIndices (w: Array[String]) = {
+    @tailrec
+    def loop (i: Int, currIdx: Int, accu: HashMap[String,Int]):
+    HashMap[String,Int] = {
+      if (i >= w.length) accu
+      else {
+	val currWord = w(i)
+	if (accu contains currWord) loop(i+1, currIdx, accu)
+	else loop(i+1, currIdx+1, accu += (currWord -> currIdx))
+      }
+    }
+    loop(0, 0, new HashMap[String,Int])
+  }
 }
 
 /** A collapsed batch Gibbs sampler
@@ -64,6 +87,7 @@ object Text {
    * @return An array of words 
    */
   def bow (docs: Array[String]): (Array[String], Array[Int]) = {
+    @tailrec
     def loop (i: Int, accuDocs: Array[String], accuAssig: Array[Int]):
     (Array[String], Array[Int]) = {
       if (i == docs.length) (accuDocs, accuAssig)
