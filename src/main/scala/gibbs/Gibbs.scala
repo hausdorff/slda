@@ -3,6 +3,8 @@
 
 package gibbs
 
+import scala.util.{ Random => Random }
+
 /** A simple collapsed Gibbs sampler
  *
  * Note that internal variables are named to be consistent with the
@@ -10,12 +12,15 @@ package gibbs
  *
  * @param docs Collection of D documents, each doc a string
  * @param T number of topics
+ * @param prior Becomes the symmetric Dirichlet prior
  */
-class CollapsedGibbs (val docs: Array[String], val T: Int, alpha: Double,
-		   beta: Double) {
+class CollapsedGibbs (val docs: Array[String], val T: Int, prior: Double) {
+  val alpha = prior
+  val beta = prior
   val D = docs.length
   val (w, d) = Text.bow(docs)
   val N = w.length
+  var z = Array.fill(N)(new Random().nextInt(T))
 }
 
 /** Simple functions for processing text */
@@ -55,8 +60,10 @@ object Text {
 object TestGibbs {
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
-    val (w, d) = Text.bow(Array("cows are green", "birds are blue"))
-    println(w.deep.mkString("\" \""))
-    println(d.deep.mkString(" "))
+    val cg = new CollapsedGibbs(Array("cows are green", "birds are blue"),
+				3, 0.3, 0.3)
+    println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
+    println("d: " + cg.d.deep.mkString(" "))
+    println("r: " + cg.r.deep.mkString(" "))
   }
 }
