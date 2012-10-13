@@ -9,6 +9,13 @@ import scala.util.{ Random => Random }
  *
  * Note that internal variables are named to be consistent with the
  * notation of Canini et al in Online Inference of Topics with LDA.
+ * The guts are as follows:
+ *
+ * D, the number of documents
+ * N, the number of (non-unique!) words in all the documents
+ * w, the vector of word occurrences in all documents
+ * d, d(i) is the document for the word w(i)
+ * z, z(i) is the topic assignment for the word w(i)
  *
  * @param docs Collection of D documents, each doc a string
  * @param T number of topics
