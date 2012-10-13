@@ -14,17 +14,13 @@ package gibbs
 class CollapsedGibbs (val docs: Array[String], val T: Int, alpha: Double,
 		   beta: Double) {
   val D = docs.length
-  val bow = new BOW(docs)
-  val N = bow.N
+  val (w, d) = Text.bow(docs)
+  val N = w.length
 }
 
-/** A simple bag of words for use with `CollapsedGibbs`
- *
- * @param docs Collection of D documents, each doc a string
- */
-class BOW (val docs: Array[String]) {
-  val (w, assignments) = docsToBOW()
-  val N = w.length
+/** Simple functions for processing text */
+object Text {
+  def tokenize (s: String): Array[String] = { s.split("\\s+") }
   
   /** Converts documents into a single array of words
    *
@@ -38,21 +34,29 @@ class BOW (val docs: Array[String]) {
    *
    * @return An array of words 
    */
-  private def docsToBOW (): (Array[String], Array[Int]) = {
-    throw new Exception("NOT IMPLEMENTED")
+  def bow (docs: Array[String]): (Array[String], Array[Int]) = {
+    def loop (i: Int, accuDocs: Array[String], accuAssig: Array[Int]):
+    (Array[String], Array[Int]) = {
+      if (i == docs.length) (accuDocs, accuAssig)
+      else {
+	val nextDocs = tokenize(docs(i))
+	val nextAssig = Array.fill(nextDocs.length)(i)
+	loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
+      }
+    }
+    val initAccuDocs = tokenize(docs(0))
+    val initAccuAssig = Array.fill(initAccuDocs.length)(0)
+    if (docs.length == 1) (initAccuDocs, initAccuAssig)
+    else loop(1, initAccuDocs, initAccuAssig)
   }
-}
-
-/** Simple functions for processing text */
-object Text {
-  def tokenize (s: String) { throw new Exception("NOT IMPLEMENTED") }
 }
 
 /** Simple, TEMPORARY tests for development purposes */
 object TestGibbs {
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
-    val cg = new CollapsedGibbs(Array("cow", "cows"), 10, 0.1, 0.2)
-    println(cg.bow)
+    val (w, d) = Text.bow(Array("cows are green", "birds are blue"))
+    println(w.deep.mkString("\" \""))
+    println(d.deep.mkString(" "))
   }
 }
