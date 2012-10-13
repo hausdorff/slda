@@ -5,7 +5,10 @@ package gibbs
 
 import scala.util.{ Random => Random }
 
-/** A simple collapsed Gibbs sampler
+/** A simple Gibbs sampler interface
+ *
+ * Different types of Gibbs samplers (eg, O-LDA, collapsed, incremental,
+ * etc.) will be derived from this abstract class.
  *
  * Note that internal variables are named to be consistent with the
  * notation of Canini et al in Online Inference of Topics with LDA.
@@ -19,7 +22,7 @@ import scala.util.{ Random => Random }
  *
  * @param docs Collection of D documents, each doc a string
  * @param T number of topics
- * @param prior Becomes the symmetric Dirichlet prior
+ * @param prior Becomes the symmetric Dirichlet priors
  */
 abstract class Gibbs (val docs: Array[String], val T: Int,
 		      val prior: Double) {
@@ -31,6 +34,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   var z = Array.fill(N)(new Random().nextInt(T))
 }
 
+/** A collapsed batch Gibbs sampler
+ */
 class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
 extends Gibbs(docs, T, prior) {
 }
