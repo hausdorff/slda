@@ -21,13 +21,18 @@ import scala.util.{ Random => Random }
  * @param T number of topics
  * @param prior Becomes the symmetric Dirichlet prior
  */
-class CollapsedGibbs (val docs: Array[String], val T: Int, prior: Double) {
+abstract class Gibbs (val docs: Array[String], val T: Int,
+		      val prior: Double) {
   val alpha = prior
   val beta = prior
   val D = docs.length
   val (w, d) = Text.bow(docs)
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
+}
+
+class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
+extends Gibbs(docs, T, prior) {
 }
 
 /** Simple functions for processing text */
