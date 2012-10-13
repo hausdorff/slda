@@ -23,6 +23,7 @@ import scala.collection.mutable.{ HashMap => HashMap }
  * w, the vector of word occurrences in all documents
  * d, `d(i)` is the document for the word `w(i)`
  * z, `z(i)` is the topic assignment for the word `w(i)`
+ * W, the size of the vocabulary
  *
  * BOOKKEEPING VARIABLES
  * wIdx, maps words to canonical indices; used to keep track of word counts
@@ -42,6 +43,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   val (w, d) = Text.bow(docs)
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
+  val W = wIdx.size
   
   // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
@@ -50,6 +52,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   /** Initializes wAssignedZ; produces TxW matrix, where T is the number
    * of topics, and W is the size of the vocabulary. `wAssignedZ(i)(j)`
    * will return the number of times word `w(j)`, is assigned topic `z(i)`.
+   *
+   * WARNING: MUTATES STATE
    */
   private def initWAssignedZ (w: Array[String], z: Array[Int],
 			      wIdx: HashMap[String,Int]) = {
