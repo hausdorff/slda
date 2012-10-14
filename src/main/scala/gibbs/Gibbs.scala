@@ -47,27 +47,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   
   // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
-  var wAssignedZ = Array.fill(T, wIdx.size)(0)
-  
-  /** Initializes wAssignedZ; produces TxW matrix, where T is the number
-   * of topics, and W is the size of the vocabulary. `wAssignedZ(i)(j)`
-   * will return the number of times word `w(j)`, is assigned topic `z(i)`.
-   *
-   * WARNING: MUTATES STATE
-   */
-  private def initWAssignedZ (w: Array[String], z: Array[Int],
-			      wIdx: HashMap[String,Int]) = {
-    @tailrec
-    def loop (i: Int, wAssignedZ: Array[Array[Int]]): Array[Array[Int]] = {
-      if (i >= w.length) wAssignedZ
-      else {
-	wAssignedZ(z(i))(i) += 1
-	loop(i+1, wAssignedZ)
-      }
-    }
-    var wAssignedZ = Array.fill(T, wIdx.size)(0)
-    loop(0, wAssignedZ)
-  }
+  var wAssignedZ = initWAssignedZ(w, z, wIdx)
+  var assignedZInD = initWAssignedZ(w, z, wIdx)
   
   /** Maps words to canonical indices; useful for maintaining word counts
    * over sets or subsets of documents.
@@ -84,6 +65,47 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
       }
     }
     loop(0, 0, new HashMap[String,Int])
+  }
+  
+  /** Produces TxW matrix, where T is the number of topics, and W is the
+   * size of the vocabulary. `wAssignedZ(i)(j)` will return the number of
+   * times word `w(j)`, is assigned topic `z(i)`.
+   *
+   * WARNING: MUTATES STATE
+   */
+  private def initWAssignedZ (w: Array[String], z: Array[Int],
+			      wIdx: HashMap[String,Int]) = {
+    @tailrec
+    def loop (i: Int, wAssignedZ: Array[Array[Int]]): Array[Array[Int]] = {
+      if (i >= w.length) wAssignedZ
+      else {
+	wAssignedZ(z(i))(i) += 1
+	loop(i+1, wAssignedZ)
+      }
+    }
+    var wAssignedZ = Array.fill(T, wIdx.size)(0)
+    loop(0, wAssignedZ)
+  }
+
+  /** Produces a TxD matrix, where T is the number of topics, and D is the
+   * number of documents. `assignedZInD(i)(j)` will return the number of
+   * words `d(j)` that are assigned `z(i)`
+   *
+   * WARNING: MUTATES STATE
+   */
+  private def initAssignedZInD (z: Array[Int], d: Array[Int],
+				wIdx: HashMap[Int,Int]) = {
+    @tailrec
+    def loop (i: Int, assignedZInD: Array[Array[Int]]):
+    Array[Array[Int]] = {
+      if (i >= w.length) assignedZInD
+      else {
+	assignedZInD(z(i))(i) += 1
+	loop(i+1, assignedZInD)
+      }
+    }
+    var assignedZInD = Array.fill(T, D)(0)
+    loop(0, assignedZInD)
   }
 }
 
