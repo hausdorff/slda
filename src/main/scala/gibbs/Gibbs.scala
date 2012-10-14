@@ -27,8 +27,13 @@ import scala.collection.mutable.{ HashMap => HashMap }
  *
  * BOOKKEEPING VARIABLES
  * wIdx, maps words to canonical indices; used to keep track of word counts
- * wAssignedZ, 2D array, where `wAssignedZ(i)(j)` represents the number of
- *             times word `w(j)` is assigned to `topic(i)`
+ * allAssignedZ, T-length vector storing number of times any word is
+ *               assigned each of the topics
+ * wAssignedZ, TxW array, where `wAssignedZ(i)(wIdx(j))` represents the
+ *             number of times word `w(j)` is assigned to `topic(i)`
+ * allAssignedZInD, TxD matrix, where T `allAssignedZInD(i)(d(j))`
+ *                  returns number of words in document `d(j)` that are
+ *                  assigned topic `z(i)`
  *
  * @param docs Collection of D documents, each doc a string
  * @param T number of topics
@@ -75,7 +80,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
    * number of times word `w(j)`, is assigned topic `z(i)`.
    *
    * `allAssignedZInD` is a TxD matrix, where T is the number of topics,
-   * and D is the number of documents. `allAssignedZInD(i)(wIdx(j))` will
+   * and D is the number of documents. `allAssignedZInD(i)(d(j))` will
    * return the number of words `d(j)` that are assigned `z(i)`
    *
    * WARNING: MUTATES STATE
