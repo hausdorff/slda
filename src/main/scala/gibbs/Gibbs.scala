@@ -115,6 +115,33 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
  */
 class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
 extends Gibbs(docs, T, prior) {
+  val selector = new Random()
+  
+  private def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
+			      currDoc: Int): Double = {
+    if (currTopic == newTopic) {
+      // Pr[currWord | topic]
+      val frst = (wAssignedZ(newTopic)(currWord) - 1 + beta) /
+      (allAssignedZ(newTopic) - 1 + W)
+      // Pr[topic | currDoc]
+      val scnd = (allAssignedZInD(newTopic)(currDoc) - 1 + alpha) /
+      (docs(currDoc).length - 1)
+      
+      val res = frst * scnd
+      res
+    }
+    else {
+      // Pr[currWord | topic]
+      val frst = (wAssignedZ(newTopic)(currWord) + beta) /
+      (allAssignedZ(newTopic) - 1 + W)
+      // Pr[topic | currDoc]
+      val scnd = (allAssignedZInD(newTopic)(currDoc) + alpha) /
+      (docs(currDoc).length - 1)
+      
+      val res = frst * scnd
+      res
+    }
+  }
 }
 
 object Stats {
