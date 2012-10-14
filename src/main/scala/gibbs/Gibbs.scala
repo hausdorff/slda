@@ -90,10 +90,12 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     (Array[Int], Array[Array[Int]], Array[Array[Int]]) = {
       if (i >= w.length) (allAssignedZ, wAssignedZ, allAssignedZInD)
       else {
-	val wordIdent = wIdx(w(i))
-	allAssignedZ(z(i)) += 1
-	wAssignedZ(z(i))(wordIdent) += 1
-	allAssignedZInD(z(i))(d(i)) += 1
+	val wordIdentifier = wIdx(w(i))
+	val topicIdentifier = z(i)
+	val docIdentifier = d(i)
+	allAssignedZ(topicIdentifier) += 1
+	wAssignedZ(topicIdentifier)(wordIdentifier) += 1
+	allAssignedZInD(topicIdentifier)(docIdentifier) += 1
 	loop(i+1, allAssignedZ, wAssignedZ, allAssignedZInD)
       }
     }
