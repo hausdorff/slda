@@ -36,15 +36,12 @@ import scala.collection.mutable.{ HashMap => HashMap }
  */
 abstract class Gibbs (val docs: Array[String], val T: Int,
 		      val prior: Double) {
-  // CORE VARIABLES
   val alpha = prior
   val beta = prior
   val D = docs.length
   val (w, d) = Text.bow(docs)
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
-  
-  // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
   val W = wIdx.size
   var (allAssignedZ, wAssignedZ, allAssignedZInD) =
