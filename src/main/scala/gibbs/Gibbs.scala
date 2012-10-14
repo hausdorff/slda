@@ -117,6 +117,26 @@ class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
 extends Gibbs(docs, T, prior) {
 }
 
+object Stats {
+  val sampler = new Random()
+  
+  def normalize (arr: Array[Double]): Array[Double] = {
+    val s = arr.reduceLeft(_+_)
+    arr.map(x => x / s)
+  }
+  
+  
+  def sampleDiscreteContiguousCDF (cdf: Array[Double]): Int = {
+    val r = sampler.nextDouble()
+    @tailrec
+    def loop (currIdx: Int): Int = {
+      if (currIdx+1 >= cdf.length || r > cdf(currIdx)) currIdx
+      else loop(currIdx+1)
+    }
+    loop(0)
+  }
+}
+
 /** Simple functions for processing text */
 object Text {
   def tokenize (s: String): Array[String] = { s.split("\\s+") }
