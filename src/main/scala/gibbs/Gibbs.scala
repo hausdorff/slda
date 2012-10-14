@@ -119,6 +119,31 @@ class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
 extends Gibbs(docs, T, prior) {
   val selector = new Random()
   
+  /** Computes the update step for 1 choice of topic
+   *
+   * In "Online Inference of Topics with LDA" (Canini et al), equation (1)
+   * gives us the Gibbs update step, wherein we are resampling our topics
+   * based on the conditional probability P(z_j | \vec{z}_{N\j}, \vec{w}_N).
+   *
+   * This method computes the UNNORMALIZED distribution for A SINGLE CHOICE
+   * OF z_j. In order to obtain the complete distribution described above,
+   * you must call `resampleTopic()`, which will call this method for all
+   * possible choices of z_j. This gives a complete specification of the
+   * conditional distribution described above.
+   *
+   * TO CALL THIS METHOD YOURSELF: typically you will hold parameters
+   * `currWord`, `currTopic`, and `currDoc` CONSTANT, and iterate through
+   * all possible values of `newTopic`. Here `newTopic` is our choice of ONE
+   * specific z_j.
+   *
+   * Here is a spec of each parameter:
+   * @param currWord Unique identifier specifying the current word we're
+   *                 resampling
+   * @param newTopic Our choice of z_j
+   * @param currTopic The topic associated with `currWord`
+   * @param currDoc The unique identifier specifying the document of
+   *                `currWord`
+   */
   private def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
 			      currDoc: Int): Double = {
     if (currTopic == newTopic) {
@@ -145,6 +170,9 @@ extends Gibbs(docs, T, prior) {
     }
   }
 
+  /** Resamples the topic of the word that occurs at position `index` in
+   * the corpus
+   */
   private def resampleTopic (index: Int): Int = {
     val currWord = wIdx(w(index))
     val currTopic = z(index)
@@ -167,6 +195,8 @@ extends Gibbs(docs, T, prior) {
     Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
   }
   
+  /** Randomly resamples a word in the corpus
+   */
   def resampleTopic () {
     val randomWordIdx = selector.nextInt(N)
     val newTopic = resampleTopic(randomWordIdx)
