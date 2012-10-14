@@ -160,5 +160,8 @@ object TestGibbs {
     println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
     println("d: " + cg.d.deep.mkString(" "))
     println("z: " + cg.z.deep.mkString(" "))
+    println("allAssignedZ: " + cg.allAssignedZ.deep.mkString(" "))
+    println("wAssignedZ: " + cg.wAssignedZ.deep.mkString(" "))
+    println("allAssignedZInD" + cg.allAssignedZInD.deep.mkString(" "))
   }
 }
