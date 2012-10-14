@@ -231,15 +231,25 @@ object Text {
 
 /** Simple, TEMPORARY tests for development purposes */
 object TestGibbs {
+  def repeat (i: Int, n: Int, cg: CollapsedGibbs): Unit = {
+    if (i == n) cg.resampleTopic()
+    else {
+      cg.resampleTopic()
+      repeat(i+1, n, cg)
+    }
+  }
+  
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
     val cg = new CollapsedGibbs(Array("cows are green", "birds are blue"),
 				3, 0.3)
+    repeat(0, 100, cg)
     println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
     println("d: " + cg.d.deep.mkString(" "))
     println("z: " + cg.z.deep.mkString(" "))
     println("allAssignedZ: " + cg.allAssignedZ.deep.mkString(" "))
     println("wAssignedZ: " + cg.wAssignedZ.deep.mkString(" "))
     println("allAssignedZInD" + cg.allAssignedZInD.deep.mkString(" "))
+    cg.resampleTopic()
   }
 }
