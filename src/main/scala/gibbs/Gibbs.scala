@@ -48,7 +48,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
   var wAssignedZ = initWAssignedZ(w, z, wIdx)
-  var assignedZInD = initWAssignedZ(w, z, wIdx)
+  var assignedZInD = initAssignedZInD(d, z, wIdx)
   
   /** Maps words to canonical indices; useful for maintaining word counts
    * over sets or subsets of documents.
@@ -79,7 +79,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     def loop (i: Int, wAssignedZ: Array[Array[Int]]): Array[Array[Int]] = {
       if (i >= w.length) wAssignedZ
       else {
-	wAssignedZ(z(i))(i) += 1
+	val idx = wIdx(w(i))
+	wAssignedZ(z(i))(idx) += 1
 	loop(i+1, wAssignedZ)
       }
     }
@@ -93,14 +94,15 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
    *
    * WARNING: MUTATES STATE
    */
-  private def initAssignedZInD (z: Array[Int], d: Array[Int],
-				wIdx: HashMap[Int,Int]) = {
+  private def initAssignedZInD (d: Array[Int], z: Array[Int],
+				wIdx: HashMap[String,Int]) = {
     @tailrec
     def loop (i: Int, assignedZInD: Array[Array[Int]]):
     Array[Array[Int]] = {
       if (i >= w.length) assignedZInD
       else {
-	assignedZInD(z(i))(i) += 1
+	val idx = wIdx(w(i))
+	assignedZInD(z(i))(idx) += 1
 	loop(i+1, assignedZInD)
       }
     }
