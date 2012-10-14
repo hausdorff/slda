@@ -47,7 +47,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   // BOOKKEEPING VARIABLES
   val wIdx = canonicalWordIndices(w)
   val W = wIdx.size
-  var (wAssignedZ, assignedZInD) = assignmentMatrices(w, d, z, wIdx)
+  var (allAssignedZ, wAssignedZ, allAssignedZInD) =
+    assignmentMatrices(w, d, z, wIdx)
   
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
@@ -67,15 +68,18 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     loop(0, 0, new HashMap[String,Int])
   }
   
-  /** Produces `wAssignedZ` and `assignedZInD`.
+  /** Produces `allAssignedZ`, `wAssignedZ` and `allAssignedZInD`.
    *
-   * The first is a TxW matrix, where T is the number of topics, and W is
+   * `allAssignedZ` is a vector of length T, which counts the number of
+   * times any word is assigned topic Z in the corpus.
+   *
+   * `wAssignedZ` is a TxW matrix, where T is the number of topics, and W is
    * the size of the vocabulary. `wAssignedZ(i)(wIdx(j))` will return the
    * number of times word `w(j)`, is assigned topic `z(i)`.
    *
-   * The second is a TxD matrix, where T is the number of topics, and D is
-   * the number of documents. `assignedZInD(i)(wIdx(j))` will return the
-   * number of words `d(j)` that are assigned `z(i)`
+   * `allAssignedZInD` is a TxD matrix, where T is the number of topics,
+   * and D is the number of documents. `allAssignedZInD(i)(wIdx(j))` will
+   * return the number of words `d(j)` that are assigned `z(i)`
    *
    * WARNING: MUTATES STATE
    */
@@ -83,20 +87,23 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
 				  z: Array[Int],
 				  wIdx: HashMap[String,Int]) = {
     @tailrec
-    def loop (i: Int, wAssignedZ: Array[Array[Int]],
-	      assignedZInD: Array[Array[Int]]):
-    (Array[Array[Int]], Array[Array[Int]]) = {
-      if (i >= w.length) (wAssignedZ, assignedZInD)
+    def loop (i: Int, allAssignedZ: Array[Int],
+	      wAssignedZ: Array[Array[Int]],
+	      allAssignedZInD: Array[Array[Int]]):
+    (Array[Int], Array[Array[Int]], Array[Array[Int]]) = {
+      if (i >= w.length) (allAssignedZ, wAssignedZ, allAssignedZInD)
       else {
 	val wordIdent = wIdx(w(i))
+	allAssignedZ(z(i)) += 1
 	wAssignedZ(z(i))(wordIdent) += 1
-	assignedZInD(z(i))(d(i)) += 1
-	loop(i+1, wAssignedZ, assignedZInD)
+	allAssignedZInD(z(i))(d(i)) += 1
+	loop(i+1, allAssignedZ, wAssignedZ, allAssignedZInD)
       }
     }
+    var allAssignedZ = Array.fill(T)(0)
     var wAssignedZ = Array.fill(T, W)(0)
-    var assignedZInD = Array.fill(T, D)(0)
-    loop(0, wAssignedZ, assignedZInD)
+    var allAssignedZInD = Array.fill(T, D)(0)
+    loop(0, allAssignedZ, wAssignedZ, allAssignedZInD)
   }
 }
 
