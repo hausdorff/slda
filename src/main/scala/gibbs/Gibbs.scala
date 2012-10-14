@@ -52,6 +52,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   var (allAssignedZ, wAssignedZ, allAssignedZInD) =
     assignmentMatrices(w, d, z, wIdx)
   
+  def resampleTopic ()
+  
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
    * documents.
@@ -141,6 +143,35 @@ extends Gibbs(docs, T, prior) {
       val res = frst * scnd
       res
     }
+  }
+
+  private def resampleTopic (index: Int): Int = {
+    val currWord = wIdx(w(index))
+    val currTopic = z(index)
+    val currDoc = d(index)
+    
+    // MUTATES ACCUMULATOR
+    @tailrec
+    def loop (i: Int, limit: Int, accu: Array[Double]): Array[Double] = {
+      if (i >= limit) accu
+      else {
+	accu(i) = pointPosterior(currWord, i, currTopic, currDoc)
+	loop(i+1, limit, accu)
+      }
+    }
+    
+    var topicDistr = Array.fill(T)(0.0)
+    loop(0, T, topicDistr)
+    //println("topicDistr " + topicDistr.deep.mkString(" "))
+
+    Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
+  }
+  
+  def resampleTopic () {
+    val randomWordIdx = selector.nextInt(N)
+    val newTopic = resampleTopic(randomWordIdx)
+    throw new Exception("NOT IMPLEMENTED -- YOU HAVE SAMPLED A NEW TOPIC " +
+		      "BUT NOT UPDATED YOUR COUNTS!")
   }
 }
 
