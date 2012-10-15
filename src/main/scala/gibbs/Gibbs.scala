@@ -53,6 +53,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   
   def resampleTopic ()
+  def perplexity (docs: Array[String]): Double
   
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
@@ -193,6 +194,17 @@ extends Gibbs(docs, T, prior) {
     //println("topicDistr " + topicDistr.deep.mkString(" "))
 
     Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
+  }
+  
+  /** Calculates perplexity, almost always of a test set.
+   *
+   * Perplexity, used by convention in the language modeling community, is
+   * algebraically equivalent to the inverse geometric mean of per-word
+   * likelihood. Thus, a lower perplexity indicates better generalization
+   * performance.
+   */
+  def perplexity (docs: Array[String]): Double = {
+    throw new Exception("NOT IMPLEMENTED")
   }
   
   /** Randomly resamples a word in the corpus
