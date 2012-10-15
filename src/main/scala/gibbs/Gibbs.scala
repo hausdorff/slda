@@ -211,10 +211,20 @@ extends Gibbs(docs, T, prior) {
   /** Randomly resamples a word in the corpus
    */
   def resampleTopic () {
-    val randomWordIdx = selector.nextInt(N)
-    val newTopic = resampleTopic(randomWordIdx)
-    throw new Exception("NOT IMPLEMENTED -- YOU HAVE SAMPLED A NEW TOPIC " +
-		      "BUT NOT UPDATED YOUR COUNTS!")
+    val wordIdx = selector.nextInt(N)
+    val word = w(wordIdx)
+    val canonWordIdx = wIdx(word)
+    val doc = d(wordIdx)
+    val oldTopic = z(wordIdx)
+    val newTopic = resampleTopic(wordIdx)
+    
+    z(wordIdx) = newTopic
+    allAssignedZ(oldTopic) -= 1
+    allAssignedZ(newTopic) += 1
+    wAssignedZ(oldTopic)(canonWordIdx) -= 1
+    wAssignedZ(newTopic)(canonWordIdx) += 1
+    allAssignedZInD(oldTopic)(doc) -= 1
+    allAssignedZInD(newTopic)(doc) += 1
   }
 }
 
