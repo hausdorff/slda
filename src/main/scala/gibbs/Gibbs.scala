@@ -20,17 +20,18 @@ import scala.collection.mutable.{ HashMap => HashMap }
  * CORE VARIABLES
  * D, the number of documents
  * N, the number of (non-unique!) words in all the documents
- * w, the vector of word occurrences in all documents
- * d, `d(i)` is the document for the word `w(i)`
- * z, `z(i)` is the topic assignment for the word `w(i)`
+ * w, `w(i)` is the i-th word in the corpus
+ * d, `d(i)` is the document for the i-th word in the corpus
+ * z, `z(i)` is the topic assignment of the i-th word in the corpus
  * W, the size of the vocabulary
  *
  * BOOKKEEPING VARIABLES
- * wIdx, maps words to canonical indices; used to keep track of word counts
+ * wIdx, `wIdx(w(i))` is the canonical identifier (an `Int`) of the i-th word
+ *       in the corpus; used to keep track of word counts
  * allAssignedZ, T-length vector storing number of times any word is
  *               assigned each of the topics
- * wAssignedZ, TxW array, where `wAssignedZ(i)(wIdx(j))` represents the
- *             number of times word `w(j)` is assigned to `topic(i)`
+ * wAssignedZ, TxW array, where `wAssignedZ(i)(wIdx(w(j)))` represents the
+ *             number of times word `w(j)` is assigned to topic `z(i)`
  * allAssignedZInD, TxD matrix, where T `allAssignedZInD(i)(d(j))`
  *                  returns number of words in document `d(j)` that are
  *                  assigned topic `z(i)`
