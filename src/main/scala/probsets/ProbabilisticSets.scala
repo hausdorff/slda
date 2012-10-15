@@ -13,9 +13,11 @@ import scala.util.{ Random => Random }
 /** Core interface for probabilistic sets.
  */
 abstract class ProbabilisticSet[T] () {
-  def add (item: T)
-  def get (i: Int): T
+  def add (item: T): ProbabilisticSet[T]
+  def addAll (items: Array[T]): ProbabilisticSet[T]
+  def apply (i: Int): T
   def getSet (): Array[T]
+  def size (): Int
 }
 
 /** Simple implementation of reservoir sampling.
@@ -30,7 +32,7 @@ class ReservoirSampler[T: Manifest] (k: Int) extends ProbabilisticSet[T]() {
   var currIdx = 0
   var randombits = new Random()
 
-  def add (item: T) = {
+  def add (item: T): ReservoirSampler[T] = {
     if(currIdx >= k) {
       // IMPORTANT: `nextInt()` not inclusive, so the `+1` is required
       val randIdx = randombits.nextInt(currIdx+1)
@@ -39,11 +41,29 @@ class ReservoirSampler[T: Manifest] (k: Int) extends ProbabilisticSet[T]() {
     else sample(currIdx) = item
     
     currIdx += 1
+    this
   }
 
-  def get (i: Int): T = sample(i)
+  def addAll (items: Array[T]): ReservoirSampler[T] = {
+    @tailrec
+    def loop (i: Int): Unit =
+      if (i >= items.length) Unit
+      else {
+	add(items(i))
+	loop(i+1)
+      }
+    loop(0)
+    this
+  }
+
+  def apply (i: Int): T = sample(i)
 
   def getSet () = sample
+
+  /** Number of elemtents in reservoir */
+  def size () =
+    if (currIdx >=k) k
+    else currIdx
 }
 
 /** Simple TEMPORARY tests used for dev purposes */
