@@ -25,7 +25,7 @@ abstract class MappingStreamSampler[T] {
   def add (item: T): MappingStreamSampler[T]
   def addAll (items: Array[T]): MappingStreamSampler[T]
   def size (): Int
-  def apply (item: T): (T, Int)
+  def apply (item: T): Int
   def getSampleSet (): Map[T, Int]
 }
 
@@ -106,7 +106,10 @@ class SpaceSavingSampler[T: Manifest] (k: Int) extends MappingStreamSampler[T] {
     this
   }
   
-  def apply (item: T): (T, Int) = (item, sample(item))
+  def apply (item: T): Int =
+    if (sample contains item) sample(item)
+    else 0
+  
   def getSampleSet (): Map[T, Int] = sample
   def size (): Int = sample.size
 }
