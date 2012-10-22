@@ -12,11 +12,12 @@ import scala.util.{ Random => Random }
 
 /** Core interface for probabilistic sets.
  */
-abstract class StreamSampler[T] () {
-  def add (item: T): StreamSampler[T]
-  def addAll (items: Array[T]): StreamSampler[T]
+abstract class AssociativeStreamSampler[T] {
+  def add (item: T): AssociativeStreamSampler[T]
+  def addAll (items: Array[T]): AssociativeStreamSampler[T]
+  def size (): Int
   def apply (i: Int): T
-  def getSet (): Array[T]
+  def getSampleSet (): Array[T]
   def size (): Int
 }
 
@@ -27,7 +28,8 @@ abstract class StreamSampler[T] () {
  *
  * WARNING: HIGHLY STATEFUL
  */
-class ReservoirSampler[T: Manifest] (k: Int) extends StreamSampler[T]() {
+class ReservoirSampler[T: Manifest] (k: Int) extends
+AssociativeStreamSampler[T] {
   var sample = new Array[T](k)
   var currIdx = 0
   var randombits = new Random()
@@ -58,7 +60,7 @@ class ReservoirSampler[T: Manifest] (k: Int) extends StreamSampler[T]() {
 
   def apply (i: Int): T = sample(i)
 
-  def getSet () = sample
+  def getSampleSet () = sample
 
   /** Number of elemtents in reservoir */
   def size () =
@@ -70,8 +72,9 @@ class ReservoirSampler[T: Manifest] (k: Int) extends StreamSampler[T]() {
 object simpletests {
   val r = new Random()
   
-  def randomTest (setSz: Int, lstSz: Int): StreamSampler[Int] = {
-    def loop (i: Int, accu: StreamSampler[Int]): StreamSampler[Int] = {
+  def randomTest (setSz: Int, lstSz: Int): AssociativeStreamSampler[Int] = {
+    def loop (i: Int, accu: AssociativeStreamSampler[Int]):
+    AssociativeStreamSampler[Int] = {
       if (i == lstSz) accu
       else {
 	accu.add(r.nextInt(9))
@@ -83,13 +86,13 @@ object simpletests {
   }
   
   def main (args: Array[String]) {
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
+    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
   }
 }
