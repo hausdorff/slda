@@ -1,7 +1,6 @@
-/** Probabilistic sets. Algorithms like reservoir sampling allow us to
- * probabilistically forget parts of a dataset. This package provides a
- * core of such algorithms for the purpose of probabilistically storing data
- * for LDA.
+/** Data structures and algorithms for processing streams. For example, this
+ * package includes sampling algorithms, like reservoir sampling and heavy
+ * hitters.
  */
 
 package stream
@@ -11,7 +10,10 @@ import scala.annotation.tailrec
 import scala.collection.mutable.Map
 import scala.util.{ Random => Random }
 
-/** Core interface for probabilistic sets.
+/** Associative stream samplers are backed by a regular associative array,
+ * meaning their elements are not key-addressable. Reservoir sampling, for
+ * example, often produces an associative array of randomly sampled elements,
+ * in random order.
  */
 abstract class AssociativeStreamSampler[T] () {
   def add (item: T): AssociativeStreamSampler[T]
@@ -21,6 +23,11 @@ abstract class AssociativeStreamSampler[T] () {
   def getSampleSet (): Array[T]
 }
 
+/** Mapping stream samplers are backed by a map or hash table, and thus their
+ * elements are key-addressable. The Misra-Gries approach to the heavy hitters
+ * problem, for example, will return a map of elements that are believed to have
+ * occurred more than k times.
+ */
 abstract class MappingStreamSampler[T] () {
   def add (item: T): MappingStreamSampler[T]
   def addAll (items: Array[T]): MappingStreamSampler[T]
@@ -76,6 +83,13 @@ AssociativeStreamSampler[T] () {
     else currIdx
 }
 
+/** Implements the SpaceSaving algorithm for the heavy hitters problem.
+ *
+ * For details see "Space-optimal Heavy Hitters with Strong Error Bounds",
+ * by Berinde, Indyk, Cormode, and Strauss.
+ *
+ * WARNING: HIGHLY STATEFUL
+ */
 class SpaceSavingSampler[T: Manifest] (k: Int) extends
 MappingStreamSampler[T] ()) {
   var sample = Map[T, Int]()
