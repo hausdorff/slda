@@ -83,6 +83,54 @@ AssociativeStreamSampler[T] () {
     else currIdx
 }
 
+/** Implements the Misra-Gries Frequent algorithm for the heavy hitters problem.
+ *
+ * For details see "Space-optimal Heavy Hitters with Strong Error Bounds",
+ * by Berinde, Indyk, Cormode, and Strauss.
+ *
+ * WARNING: HIGHLY STATEFUL
+ */
+class FrequentSampler[T: Manifest] (k: Int) extends
+MappingStreamSampler[T] () {
+  var sample = Map[T, Int]()
+  
+  def add (item: T): FrequentSampler[T] = {
+    if (sample.contains(item))
+      sample += item -> (sample(item) + 1)
+    else if (sample.size < k)
+      sample += item -> 1
+    else {
+      for ((k,v) <- sample) {
+	if (v == 1) sample -= k
+	else sample += k -> (v - 1)
+      }
+    }
+
+    this
+  }
+  
+  def addAll (items: Array[T]): FrequentSampler[T] = {
+    @tailrec
+    def loop (i: Int): Unit = {
+      if (i >= items.length) Unit
+      else {
+	add(items(i))
+	loop(i+1)
+      }
+    }
+    loop(0)
+    this
+  }
+  
+  def apply (item: T): Int =
+    if (sample contains item) sample(item)
+    else 0
+  
+  def getSampleSet (): Map[T, Int] = sample
+  
+  def size (): Int = sample.size
+}
+
 /** Implements the SpaceSaving algorithm for the heavy hitters problem.
  *
  * For details see "Space-optimal Heavy Hitters with Strong Error Bounds",
@@ -91,7 +139,7 @@ AssociativeStreamSampler[T] () {
  * WARNING: HIGHLY STATEFUL
  */
 class SpaceSavingSampler[T: Manifest] (k: Int) extends
-MappingStreamSampler[T] ()) {
+MappingStreamSampler[T] () {
   var sample = Map[T, Int]()
   
   def add (item: T): SpaceSavingSampler[T] = {
