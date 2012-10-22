@@ -13,7 +13,7 @@ import scala.util.{ Random => Random }
 
 /** Core interface for probabilistic sets.
  */
-abstract class AssociativeStreamSampler[T] {
+abstract class AssociativeStreamSampler[T] () {
   def add (item: T): AssociativeStreamSampler[T]
   def addAll (items: Array[T]): AssociativeStreamSampler[T]
   def size (): Int
@@ -21,7 +21,7 @@ abstract class AssociativeStreamSampler[T] {
   def getSampleSet (): Array[T]
 }
 
-abstract class MappingStreamSampler[T] {
+abstract class MappingStreamSampler[T] () {
   def add (item: T): MappingStreamSampler[T]
   def addAll (items: Array[T]): MappingStreamSampler[T]
   def size (): Int
@@ -37,7 +37,7 @@ abstract class MappingStreamSampler[T] {
  * WARNING: HIGHLY STATEFUL
  */
 class ReservoirSampler[T: Manifest] (k: Int) extends
-AssociativeStreamSampler[T] {
+AssociativeStreamSampler[T] () {
   var sample = new Array[T](k)
   var currIdx = 0
   var randombits = new Random()
@@ -76,7 +76,8 @@ AssociativeStreamSampler[T] {
     else currIdx
 }
 
-class SpaceSavingSampler[T: Manifest] (k: Int) extends MappingStreamSampler[T] {
+class SpaceSavingSampler[T: Manifest] (k: Int) extends
+MappingStreamSampler[T] ()) {
   var sample = Map[T, Int]()
   
   def add (item: T): SpaceSavingSampler[T] = {
