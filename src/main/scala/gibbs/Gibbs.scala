@@ -4,9 +4,10 @@
 package gibbs
 
 import scala.annotation.tailrec
-
 import scala.util.{ Random => Random }
 import scala.collection.mutable.{ HashMap => HashMap }
+
+import stream._
 
 /** A simple Gibbs sampler interface
  *
@@ -117,9 +118,10 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
 
 /** A collapsed batch Gibbs sampler
  */
-class CollapsedGibbs (docs: Array[String], T: Int, prior: Double)
+class CollapsedGibbs (docs: Array[String], T: Int, prior: Double, k: Int)
 extends Gibbs(docs, T, prior) {
   val selector = new Random()
+  var sampler = new ReservoirSampler[Array[String]](k)
   
   /** Computes the update step for 1 choice of topic
    *
@@ -308,7 +310,7 @@ object TestGibbs {
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
     val cg = new CollapsedGibbs(Array("cows are green", "birds are blue"),
-				3, 0.3)
+				3, 0.3, 3)
     repeat(0, 100, cg)
   }
 }

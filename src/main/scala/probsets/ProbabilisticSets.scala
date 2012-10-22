@@ -4,7 +4,7 @@
  * for LDA.
  */
 
-package probsets
+package stream
 
 import scala.annotation.tailrec
 
@@ -12,9 +12,9 @@ import scala.util.{ Random => Random }
 
 /** Core interface for probabilistic sets.
  */
-abstract class ProbabilisticSet[T] () {
-  def add (item: T): ProbabilisticSet[T]
-  def addAll (items: Array[T]): ProbabilisticSet[T]
+abstract class StreamSampler[T] () {
+  def add (item: T): StreamSampler[T]
+  def addAll (items: Array[T]): StreamSampler[T]
   def apply (i: Int): T
   def getSet (): Array[T]
   def size (): Int
@@ -27,7 +27,7 @@ abstract class ProbabilisticSet[T] () {
  *
  * WARNING: HIGHLY STATEFUL
  */
-class ReservoirSampler[T: Manifest] (k: Int) extends ProbabilisticSet[T]() {
+class ReservoirSampler[T: Manifest] (k: Int) extends StreamSampler[T]() {
   var sample = new Array[T](k)
   var currIdx = 0
   var randombits = new Random()
@@ -70,8 +70,8 @@ class ReservoirSampler[T: Manifest] (k: Int) extends ProbabilisticSet[T]() {
 object simpletests {
   val r = new Random()
   
-  def randomTest (setSz: Int, lstSz: Int): ProbabilisticSet[Int] = {
-    def loop (i: Int, accu: ProbabilisticSet[Int]): ProbabilisticSet[Int] = {
+  def randomTest (setSz: Int, lstSz: Int): StreamSampler[Int] = {
+    def loop (i: Int, accu: StreamSampler[Int]): StreamSampler[Int] = {
       if (i == lstSz) accu
       else {
 	accu.add(r.nextInt(9))
