@@ -26,6 +26,40 @@ object Io {
   }
 }
 
+/** Simple functions for processing text */
+object Text {
+  def tokenize (s: String): Array[String] = { s.split("\\s+") }
+  
+  /** Converts documents into a single array of words
+   *
+   * Takes `docs`, our array of documents, breaks each doc into an array
+   * of words, and then smashes all those arrays together into a single
+   * array.
+   *
+   * Additionally, we return an array that maps each word to the document
+   * it came from, ie, the `word[i]` will have come from document
+   * `assignment[i]`
+   *
+   * @return An array of words 
+   */
+  def bow (docs: Array[String]): (Array[String], Array[Int]) = {
+    @tailrec
+    def loop (i: Int, accuDocs: Array[String], accuAssig: Array[Int]):
+    (Array[String], Array[Int]) = {
+      if (i == docs.length) (accuDocs, accuAssig)
+      else {
+	val nextDocs = tokenize(docs(i))
+	val nextAssig = Array.fill(nextDocs.length)(i)
+	loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
+      }
+    }
+    val initAccuDocs = tokenize(docs(0))
+    val initAccuAssig = Array.fill(initAccuDocs.length)(0)
+    if (docs.length == 1) (initAccuDocs, initAccuAssig)
+    else loop(1, initAccuDocs, initAccuAssig)
+  }
+}
+
 /** Wrangles the 20 Newsgroups dataset
  */
 object TNG {

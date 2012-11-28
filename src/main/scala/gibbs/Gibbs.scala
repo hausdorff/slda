@@ -3,11 +3,13 @@
 
 package gibbs
 
+import scala.math
 import scala.annotation.tailrec
 import scala.util.{ Random => Random }
 import scala.collection.mutable.{ HashMap => HashMap }
 
 import stream._
+import wrangle._
 
 /** A simple Gibbs sampler interface
  *
@@ -206,8 +208,44 @@ extends Gibbs(docs, T, prior) {
    * likelihood. Thus, a lower perplexity indicates better generalization
    * performance.
    */
-  def perplexity (docs: Array[String]): Double = {
+  def perplexity (testDocs: Array[String]): Double = {
     throw new Exception("NOT IMPLEMENTED")
+  }
+
+  // TODO: REMOVE, NOT GENERAL ENOUGH
+  def unigramPerplexity (testdocs: Array[String]): Double = {
+    val (testw, testd) = Text.bow(testdocs)
+    @tailrec
+    def loop (i: Int, acc: Double): Double = {
+      if (i >= testdocs.length) -(acc / testdocs.length)
+      else {
+	val (iprime, accprime) = docloop(i, 0, testd(i), acc)
+	loop(iprime, accprime)
+      }
+    }
+    
+    @tailrec
+    /* `doclen` should initially be 0 -- it's counting words in doc;
+     * currd is the current document, it tracks when we've switched to
+     * a different document
+     */
+    def docloop (i: Int, doclen: Int, currd: Int, acc: Double):
+    (Int, Double) = {
+      if (testd(i) != currd) (i, acc / doclen)
+      else {
+	val testwprob = wordProb(testw(i))
+	docloop(i+1, doclen+1, currd, acc + math.log(testwprob))
+      }
+    }
+
+    loop(0, 0)
+  }
+
+  /** Calculates the probability of a word according to the language model
+   * that exists when in the sampler when this method is called
+   */
+  private def wordProb (w: String): Double = {
+    0.5
   }
   
   /** Randomly resamples a word in the corpus
@@ -250,40 +288,6 @@ object Stats {
   }
 }
 
-/** Simple functions for processing text */
-object Text {
-  def tokenize (s: String): Array[String] = { s.split("\\s+") }
-  
-  /** Converts documents into a single array of words
-   *
-   * Takes `docs`, our array of documents, breaks each doc into an array
-   * of words, and then smashes all those arrays together into a single
-   * array.
-   *
-   * Additionally, we return an array that maps each word to the document
-   * it came from, ie, the `word[i]` will have come from document
-   * `assignment[i]`
-   *
-   * @return An array of words 
-   */
-  def bow (docs: Array[String]): (Array[String], Array[Int]) = {
-    @tailrec
-    def loop (i: Int, accuDocs: Array[String], accuAssig: Array[Int]):
-    (Array[String], Array[Int]) = {
-      if (i == docs.length) (accuDocs, accuAssig)
-      else {
-	val nextDocs = tokenize(docs(i))
-	val nextAssig = Array.fill(nextDocs.length)(i)
-	loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
-      }
-    }
-    val initAccuDocs = tokenize(docs(0))
-    val initAccuAssig = Array.fill(initAccuDocs.length)(0)
-    if (docs.length == 1) (initAccuDocs, initAccuAssig)
-    else loop(1, initAccuDocs, initAccuAssig)
-  }
-}
-
 /** Simple, TEMPORARY tests for development purposes */
 object TestGibbs {
   def repeat (i: Int, n: Int, cg: CollapsedGibbs): Unit = {
@@ -312,5 +316,6 @@ object TestGibbs {
     val cg = new CollapsedGibbs(Array("cows are green", "birds are blue"),
 				3, 0.3, 3)
     repeat(0, 100, cg)
+    println(cg.unigramPerplexity(Array("cows are not green", "birds are not blue")))
   }
 }
