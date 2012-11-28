@@ -10,19 +10,26 @@ import java.io.File
 
 /** Handles basic IO for our little package */
 object Io {
-  def filesInDir (dir: String) = {
+  def files (dir: String): Array[java.io.File] = {
     val f = new File(dir)
-    for (fi <- f.listFiles)
-      yield fi
+    f.listFiles.toArray
   }
 
-  /* Takes filename, returns List of String, each string a line in file */
-  def lines (fname: java.io.File): List[String] = {
-    def loop (iter: Iterator[String]): List[String] = {
-      if (iter.hasNext) iter.next :: loop(iter)
-      else List()
+  /** Transforms contents of a file into a single String */
+  def fileToString (f: java.io.File): String = Source.fromFile(f).mkString
+
+  /** Returns all files in corpus as an array of Strings */
+  def rawCorpus (dir: String): Array[String] = {
+    val fs = files(dir)
+    @tailrec
+    def loop (i: Int, acc: Array[String]): Array[String] = {
+      if (i >= fs.length) acc
+      else {
+	acc(i) = fileToString(fs(i))
+	loop(i+1, acc)
+      }
     }
-    loop(Source.fromFile(fname).getLines)
+    loop(0, new Array[String](fs.length))
   }
 }
 
@@ -65,8 +72,8 @@ object Text {
 object TNG {
   
   def main (args: Array[String]) {
-    val f = new File("data/20_newsgroups/alt.atheism")
-    val arr = f.listFiles
-    println(Io.lines(arr(1)))
+    val corpus = Io.rawCorpus("data/20_newsgroups/alt.atheism")
+    println(corpus.length)
+    //println(corpus(0))
   }
 }
