@@ -56,7 +56,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   var (allAssignedZ, wAssignedZ, allAssignedZInD) =
     assignmentMatrices(w, d, z, wIdx)
   
-  def resampleTopic ()
+  def resampleTopic (): Unit
   
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
@@ -202,7 +202,7 @@ extends Gibbs(docs, T, prior) {
   
   /** Randomly resamples a word in the corpus
    */
-  def resampleTopic () {
+  def resampleTopic (): Unit = {
     val wordIdx = selector.nextInt(N)
     val word = w(wordIdx)
     val canonWordIdx = wIdx(word)
