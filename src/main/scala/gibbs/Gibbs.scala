@@ -27,6 +27,7 @@ import wrangle._
  * d, `d(i)` is the document for the i-th word in the corpus
  * z, `z(i)` is the topic assignment of the i-th word in the corpus
  * W, the size of the vocabulary
+ * selector, used to randomly pick topic assignments to update
  *
  * BOOKKEEPING VARIABLES
  * wIdx, `wIdx(w(i))` is the canonical identifier (an `Int`) of the i-th word
@@ -55,7 +56,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   val W = wIdx.size
   var (allAssignedZ, wAssignedZ, allAssignedZInD) =
     assignmentMatrices(w, d, z, wIdx)
-  
+  val selector = new Random()
+
   def resampleTopic (): Unit
   def evaluator (): Evaluator
   
@@ -116,13 +118,58 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     var allAssignedZInD = Array.fill(T, D)(0)
     loop(0, allAssignedZ, wAssignedZ, allAssignedZInD)
   }
+  
+  /** Resamples the topic of the word that occurs at position `index` in
+   * the corpus
+   */
+  private def resampleTopic (index: Int, resampler: (Int, Int, Int, Int)
+			   => Double): Int = {
+    val currWord = wIdx(w(index))
+    val currTopic = z(index)
+    val currDoc = d(index)
+    
+    // MUTATES ACCUMULATOR
+    @tailrec
+    def loop (i: Int, limit: Int, accu: Array[Double]): Array[Double] = {
+      if (i >= limit) accu
+      else {
+	//accu(i) = pointPosterior(currWord, i, currTopic, currDoc)
+	accu(i) = resampler(currWord, i, currTopic, currDoc)
+	loop(i+1, limit, accu)
+      }
+    }
+    
+    var topicDistr = Array.fill(T)(0.0)
+    loop(0, T, topicDistr)
+    //println("topicDistr " + topicDistr.deep.mkString(" "))
+
+    Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
+  }
+  
+  /** Randomly resamples a word in the corpus
+   */
+  def resampleTopic (resampler: (Int, Int, Int, Int) => Double): Unit = {
+    val wordIdx = selector.nextInt(N)
+    val word = w(wordIdx)
+    val canonWordIdx = wIdx(word)
+    val doc = d(wordIdx)
+    val oldTopic = z(wordIdx)
+    val newTopic = resampleTopic(wordIdx, resampler)
+    
+    z(wordIdx) = newTopic
+    allAssignedZ(oldTopic) -= 1
+    allAssignedZ(newTopic) += 1
+    wAssignedZ(oldTopic)(canonWordIdx) -= 1
+    wAssignedZ(newTopic)(canonWordIdx) += 1
+    allAssignedZInD(oldTopic)(doc) -= 1
+    allAssignedZInD(newTopic)(doc) += 1
+  }
 }
 
 /** A collapsed batch Gibbs sampler for performing LDA
  */
 class CollapsedGibbs (docs: Array[String], T: Int, prior: Double, k: Int)
 extends Gibbs(docs, T, prior) {
-  val selector = new Random()
   var sampler = new ReservoirSampler[Array[String]](k)
   
   /** Computes the update step for 1 choice of topic
@@ -176,49 +223,7 @@ extends Gibbs(docs, T, prior) {
     }
   }
 
-  /** Resamples the topic of the word that occurs at position `index` in
-   * the corpus
-   */
-  private def resampleTopic (index: Int): Int = {
-    val currWord = wIdx(w(index))
-    val currTopic = z(index)
-    val currDoc = d(index)
-    
-    // MUTATES ACCUMULATOR
-    @tailrec
-    def loop (i: Int, limit: Int, accu: Array[Double]): Array[Double] = {
-      if (i >= limit) accu
-      else {
-	accu(i) = pointPosterior(currWord, i, currTopic, currDoc)
-	loop(i+1, limit, accu)
-      }
-    }
-    
-    var topicDistr = Array.fill(T)(0.0)
-    loop(0, T, topicDistr)
-    //println("topicDistr " + topicDistr.deep.mkString(" "))
-
-    Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
-  }
-  
-  /** Randomly resamples a word in the corpus
-   */
-  def resampleTopic (): Unit = {
-    val wordIdx = selector.nextInt(N)
-    val word = w(wordIdx)
-    val canonWordIdx = wIdx(word)
-    val doc = d(wordIdx)
-    val oldTopic = z(wordIdx)
-    val newTopic = resampleTopic(wordIdx)
-    
-    z(wordIdx) = newTopic
-    allAssignedZ(oldTopic) -= 1
-    allAssignedZ(newTopic) += 1
-    wAssignedZ(oldTopic)(canonWordIdx) -= 1
-    wAssignedZ(newTopic)(canonWordIdx) += 1
-    allAssignedZInD(oldTopic)(doc) -= 1
-    allAssignedZInD(newTopic)(doc) += 1
-  }
+  def resampleTopic() = resampleTopic(pointPosterior)
 
   def evaluator (): Evaluator = {
     // Generate new assignment matrices because the evaluator needs them
