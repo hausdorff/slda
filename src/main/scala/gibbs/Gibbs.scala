@@ -57,6 +57,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   
   def resampleTopic (): Unit
+  def evaluator (): Evaluator
   
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
@@ -91,7 +92,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
    *
    * WARNING: MUTATES STATE
    */
-  private def assignmentMatrices (w: Array[String], d: Array[Int],
+  def assignmentMatrices (w: Array[String], d: Array[Int],
 				  z: Array[Int],
 				  wIdx: HashMap[String,Int]) = {
     @tailrec
@@ -217,6 +218,15 @@ extends Gibbs(docs, T, prior) {
     wAssignedZ(newTopic)(canonWordIdx) += 1
     allAssignedZInD(oldTopic)(doc) -= 1
     allAssignedZInD(newTopic)(doc) += 1
+  }
+
+  def evaluator (): Evaluator = {
+    // Generate new assignment matrices because the evaluator needs them
+    // for its own Gibbs sampling
+    var (evAllAssignedZ, evWAssignedZ, evAllAssignedZInD) =
+      assignmentMatrices(w, d, z, wIdx)
+    new Evaluator(D, N, w, d, z, W, wIdx, evAllAssignedZ, evWAssignedZ,
+		evAllAssignedZInD)
   }
 }
 
