@@ -57,7 +57,6 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   
   def resampleTopic ()
-  def perplexity (docs: Array[String]): Double
   
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
@@ -118,7 +117,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   }
 }
 
-/** A collapsed batch Gibbs sampler
+/** A collapsed batch Gibbs sampler for performing LDA
  */
 class CollapsedGibbs (docs: Array[String], T: Int, prior: Double, k: Int)
 extends Gibbs(docs, T, prior) {
@@ -199,53 +198,6 @@ extends Gibbs(docs, T, prior) {
     //println("topicDistr " + topicDistr.deep.mkString(" "))
 
     Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
-  }
-  
-  /** Calculates perplexity, almost always of a test set.
-   *
-   * Perplexity, used by convention in the language modeling community, is
-   * algebraically equivalent to the inverse geometric mean of per-word
-   * likelihood. Thus, a lower perplexity indicates better generalization
-   * performance.
-   */
-  def perplexity (testDocs: Array[String]): Double = {
-    throw new Exception("NOT IMPLEMENTED")
-  }
-
-  // TODO: REMOVE, NOT GENERAL ENOUGH
-  def unigramPerplexity (testdocs: Array[String]): Double = {
-    val (testw, testd) = Text.bow(testdocs)
-    @tailrec
-    def loop (i: Int, acc: Double): Double = {
-      if (i >= testdocs.length) -(acc / testdocs.length)
-      else {
-	val (iprime, accprime) = docloop(i, 0, testd(i), acc)
-	loop(iprime, accprime)
-      }
-    }
-    
-    @tailrec
-    /* `doclen` should initially be 0 -- it's counting words in doc;
-     * currd is the current document, it tracks when we've switched to
-     * a different document
-     */
-    def docloop (i: Int, doclen: Int, currd: Int, acc: Double):
-    (Int, Double) = {
-      if (testd(i) != currd) (i, acc / doclen)
-      else {
-	val testwprob = wordProb(testw(i))
-	docloop(i+1, doclen+1, currd, acc + math.log(testwprob))
-      }
-    }
-
-    loop(0, 0)
-  }
-
-  /** Calculates the probability of a word according to the language model
-   * that exists when in the sampler when this method is called
-   */
-  private def wordProb (w: String): Double = {
-    0.5
   }
   
   /** Randomly resamples a word in the corpus
