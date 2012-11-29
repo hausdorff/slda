@@ -242,6 +242,7 @@ object Stats {
 
 /** Simple, TEMPORARY tests for development purposes */
 object TestGibbs {
+  /*
   def repeat (i: Int, n: Int, cg: CollapsedGibbs): Unit = {
     if (i == n) cg.resampleTopic()
     else {
@@ -269,5 +270,38 @@ object TestGibbs {
 				3, 0.3, 3)
     repeat(0, 100, cg)
     println(cg.unigramPerplexity(Array("cows are not green", "birds are not blue")))
+  }
+  */
+
+  def repeat (i: Int, n: Int, cg: CollapsedGibbs): Unit = {
+    if (i == n) cg.resampleTopic()
+    else {
+      cg.resampleTopic()
+      println(i)
+      /*
+      println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
+      println("d: " + cg.d.deep.mkString(" "))
+      println("z: " + cg.z.deep.mkString(" "))
+      println("allAssignedZ: " + cg.allAssignedZ.deep.mkString(" "))
+      println("wAssignedZ: " + cg.wAssignedZ.deep.mkString(" "))
+      println("allAssignedZInD" + cg.allAssignedZInD.deep.mkString(" "))
+      cg.resampleTopic()
+      println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
+      println("d: " + cg.d.deep.mkString(" "))
+      println("z: " + cg.z.deep.mkString(" "))
+      println("allAssignedZ: " + cg.allAssignedZ.deep.mkString(" "))
+      println("wAssignedZ: " + cg.wAssignedZ.deep.mkString(" "))
+      println("allAssignedZInD" + cg.allAssignedZInD.deep.mkString(" "))
+      println()
+      */
+      repeat(i+1, n, cg)
+    }
+  }
+
+  def main (args: Array[String]) = {
+    // Test that the objects gets made n stuff
+    val corpus = Io.rawCorpus("data/20_newsgroups/alt.atheism")
+    val cg = new CollapsedGibbs(corpus, 15, 0.1, corpus.length)
+    repeat(0, 100000, cg)
   }
 }
