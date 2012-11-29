@@ -58,9 +58,12 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   val selector = new Random()
 
-  def resampleTopic (): Unit
+  def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
+		      currDoc: Int): Double
   def evaluator (): Evaluator
   
+  def resampleTopic(): Unit = resampleTopic(pointPosterior)
+
   /** Builds map w -> {W}, mapping every word to a unique integer in the
    * range from 0-W. This is useful for maintaining counts of words over
    * documents.
@@ -197,7 +200,7 @@ extends Gibbs(docs, T, prior) {
    * @param currDoc The unique identifier specifying the document of
    *                `currWord`
    */
-  private def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
+  def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
 			      currDoc: Int): Double = {
     if (currTopic == newTopic) {
       // Pr[currWord | topic]
@@ -222,8 +225,6 @@ extends Gibbs(docs, T, prior) {
       res
     }
   }
-
-  def resampleTopic() = resampleTopic(pointPosterior)
 
   def evaluator (): Evaluator = {
     // Generate new assignment matrices because the evaluator needs them
