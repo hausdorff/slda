@@ -58,9 +58,17 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   val selector = new Random()
 
+  def this (docs: Array[String], T: Int, prior: Double,
+	    allAssignedZ: Array[Int], wAssignedZ: Array[Array[Int]],
+	    allAssignedZInD: Array[Array[Int]]) = {
+    this(docs, T, prior)
+    this.allAssignedZ = allAssignedZ
+    this.wAssignedZ = wAssignedZ
+    this.allAssignedZInD = allAssignedZInD
+  }
+
   def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
 		      currDoc: Int): Double
-  def evaluator (): Evaluator
   
   def resampleTopic(): Unit = resampleTopic(pointPosterior)
 
@@ -231,8 +239,40 @@ extends Gibbs(docs, T, prior) {
     // for its own Gibbs sampling
     var (evAllAssignedZ, evWAssignedZ, evAllAssignedZInD) =
       assignmentMatrices(w, d, z, wIdx)
-    new Evaluator(D, N, w, d, z, W, wIdx, evAllAssignedZ, evWAssignedZ,
-		evAllAssignedZInD)
+    new Evaluator(docs, T, prior, evAllAssignedZ, evWAssignedZ,
+		  evAllAssignedZInD)
+  }
+}
+
+class Evaluator (docs: Array[String], T: Int,
+		 prior: Double, allAssignedZ: Array[Int],
+		 wAssignedZ: Array[Array[Int]],
+		 allAssignedZInD: Array[Array[Int]])
+extends Gibbs(docs, T, prior, allAssignedZ, wAssignedZ, allAssignedZInD) {
+  def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
+		      currDoc: Int): Double = {
+    if (currTopic == newTopic) {
+      // Pr[currWord | topic]
+      val frst = (wAssignedZ(newTopic)(currWord) - 1 + beta) /
+      (allAssignedZ(newTopic) - 1 + W)
+      // Pr[topic | currDoc]
+      val scnd = (allAssignedZInD(newTopic)(currDoc) - 1 + alpha) /
+      (docs(currDoc).length - 1)
+      
+      val res = frst * scnd
+      res
+    }
+    else {
+      // Pr[currWord | topic]
+      val frst = (wAssignedZ(newTopic)(currWord) + beta) /
+      (allAssignedZ(newTopic) - 1 + W)
+      // Pr[topic | currDoc]
+      val scnd = (allAssignedZInD(newTopic)(currDoc) + alpha) /
+      (docs(currDoc).length - 1)
+      
+      val res = frst * scnd
+      res
+    }
   }
 }
 
