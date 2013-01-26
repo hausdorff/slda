@@ -42,12 +42,11 @@ import wrangle._
  *
  * @param docs Collection of D documents, each doc a string
  * @param T number of topics
- * @param prior Becomes the symmetric Dirichlet priors
+ * @param alpha Symmetric Dirichlet prior
+ * @param beta Symmetric Dirichlet prior
  */
 abstract class Gibbs (val docs: Array[String], val T: Int,
-		      val prior: Double) {
-  val alpha = prior
-  val beta = prior
+		      val alpha: Double, val beta: Double) {
   val D = docs.length
   val (w, d) = Text.bow(docs)
   val N = w.length
@@ -58,10 +57,10 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     assignmentMatrices(w, d, z, wIdx)
   val selector = new Random()
 
-  def this (docs: Array[String], T: Int, prior: Double,
+  def this (docs: Array[String], T: Int, alpha: Double, beta: Double,
 	    allAssignedZ: Array[Int], wAssignedZ: Array[Array[Int]],
 	    allAssignedZInD: Array[Array[Int]]) = {
-    this(docs, T, prior)
+    this(docs, T, alpha, beta)
     this.allAssignedZ = allAssignedZ
     this.wAssignedZ = wAssignedZ
     this.allAssignedZInD = allAssignedZInD
@@ -179,8 +178,9 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
 
 /** A collapsed batch Gibbs sampler for performing LDA
  */
-class CollapsedGibbs (docs: Array[String], T: Int, prior: Double, k: Int)
-extends Gibbs(docs, T, prior) {
+class CollapsedGibbs (docs: Array[String], T: Int, alpha: Double,
+		      beta: Double, k: Int)
+extends Gibbs(docs, T, alpha, beta) {
   var sampler = new ReservoirSampler[Array[String]](k)
   
   /** Computes the update step for 1 choice of topic
@@ -239,16 +239,17 @@ extends Gibbs(docs, T, prior) {
     // for its own Gibbs sampling
     var (evAllAssignedZ, evWAssignedZ, evAllAssignedZInD) =
       assignmentMatrices(w, d, z, wIdx)
-    new Evaluator(docs, T, prior, evAllAssignedZ, evWAssignedZ,
+    new Evaluator(docs, T, alpha, beta, evAllAssignedZ, evWAssignedZ,
 		  evAllAssignedZInD)
   }
 }
 
 class Evaluator (docs: Array[String], T: Int,
-		 prior: Double, allAssignedZ: Array[Int],
+		 alpha: Double, beta: Double, allAssignedZ: Array[Int],
 		 wAssignedZ: Array[Array[Int]],
 		 allAssignedZInD: Array[Array[Int]])
-extends Gibbs(docs, T, prior, allAssignedZ, wAssignedZ, allAssignedZInD) {
+extends Gibbs(docs, T, alpha, beta, allAssignedZ, wAssignedZ,
+	      allAssignedZInD) {
   def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
 		      currDoc: Int): Double = {
     if (currTopic == newTopic) {
@@ -357,7 +358,7 @@ object TestGibbs {
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
     val corpus = Io.rawCorpus("data/20_newsgroups/alt.atheism")
-    val cg = new CollapsedGibbs(corpus, 15, 0.1, corpus.length)
+    val cg = new CollapsedGibbs(corpus, 15, 0.1, 0.1, corpus.length)
     repeat(0, 100000, cg)
   }
 }
