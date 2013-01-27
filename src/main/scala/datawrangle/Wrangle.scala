@@ -85,8 +85,13 @@ object Text {
 object TNG {
   
   def main (args: Array[String]) {
-    val corpus = Io.rawCorpus("data/20_newsgroups/alt.atheism")
+    val corpus = Io.rawCorpus("data/20news-bydate-train/alt.atheism")
     println(corpus.length)
-    //println(corpus(0))
+    val sws = Text.stopWords("data/WHITELIST")
+    val (w, d) = Text.bow(corpus, (str: String) => sws(str))
+    val (wp, dp) = Text.bow(corpus, (str: String) => true)
+    println(corpus(0).length)
+    println(w.length)
+    println(wp.length)
   }
 }
