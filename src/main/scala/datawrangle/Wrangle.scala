@@ -34,6 +34,15 @@ object Io {
     }
     loop(0, new Array[String](fs.length))
   }
+
+  def rawCorpus (dirs: List[String]): Array[String] = {
+    def loop (li: List[String]): Array[String] = li match {
+      case Nil => Array()
+      case hd::Nil => rawCorpus(hd)
+      case hd::tl => rawCorpus(hd) ++ loop(tl)
+    }
+    loop(dirs)
+  }
 }
 
 /** Simple functions for processing text */
@@ -80,18 +89,41 @@ object Text {
   }
 }
 
+object DataConsts {
+  val DATA_DIR = "data/"
+  val TNG_TRAIN_DIR = DATA_DIR + "20news-bydate-train/"
+  val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
+  val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
+  val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
+			      "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
+  val REL_3_TRAIN_DOCS = List("talk.politics.misc", "talk.politics.guns",
+			      "talk.politics.mideast") map (s =>
+				TNG_TRAIN_DIR + s)
+  val DIFF_3_TRAIN_DOCS = List("alt.atheism", "rec.sport.baseball",
+			       "sci.space") map (s => TNG_TRAIN_DIR + s)
+}
+
 /** Wrangles the 20 Newsgroups dataset
  */
 object TNG {
   
   def main (args: Array[String]) {
-    val corpus = Io.rawCorpus("data/20news-bydate-train/alt.atheism")
-    println(corpus.length)
-    val sws = Text.stopWords("data/WHITELIST")
+    val corpus = Io.rawCorpus(DataConsts.ALT_ATHEISM)
+    println("Docs in corpus " + corpus.length)
+    val sws = Text.stopWords(DataConsts.TNG_WHITELIST)
     val (w, d) = Text.bow(corpus, (str: String) => sws(str))
     val (wp, dp) = Text.bow(corpus, (str: String) => true)
-    println(corpus(0).length)
-    println(w.length)
-    println(wp.length)
+    println("Words in first doc " + corpus(0).length)
+    println("Vocabulary w filtering\t" + w.length)
+    println("Vocabulary wo filtering\t" + wp.length)
+    
+    val sim3 = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
+    val rel3 = Io.rawCorpus(DataConsts.REL_3_TRAIN_DOCS)
+    val diff3 = Io.rawCorpus(DataConsts.DIFF_3_TRAIN_DOCS)
+    println(sim3.length)
+    println(rel3.length)
+    println(diff3.length)
+
+    println(Io.files(DataConsts.TNG_TRAIN_DIR + "rec.sport.baseball").length)
   }
 }
