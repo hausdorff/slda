@@ -48,7 +48,7 @@ import wrangle._
 abstract class Gibbs (val docs: Array[String], val T: Int,
 		      val alpha: Double, val beta: Double) {
   val D = docs.length
-  val whitelist = Text.stopWords("data/WHITELIST")
+  val whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   val (w, d) = Text.bow(docs, (str: String) => whitelist(str))
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
@@ -154,7 +154,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     loop(0, T, topicDistr)
     //println("topicDistr " + topicDistr.deep.mkString(" "))
 
-    Stats.sampleDiscreteContiguousCDF(Stats.normalize(topicDistr))
+    Stats.sampleCategoricalCdf(Stats.normalize(topicDistr))
   }
   
   /** Randomly resamples a word in the corpus
@@ -286,8 +286,7 @@ object Stats {
     arr.map(x => x / s)
   }
   
-  
-  def sampleDiscreteContiguousCDF (cdf: Array[Double]): Int = {
+  def sampleCategoricalCdf (cdf: Array[Double]): Int = {
     val r = sampler.nextDouble()
     @tailrec
     def loop (currIdx: Int): Int = {
@@ -358,7 +357,7 @@ object TestGibbs {
 
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
-    val corpus = Io.rawCorpus("data/20news-bydate-train/alt.atheism")
+    val corpus = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
     val cg = new CollapsedGibbs(corpus, 15, 0.1, 0.1, corpus.length)
     repeat(0, 100000, cg)
   }
