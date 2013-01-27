@@ -12,7 +12,10 @@ import java.io.File
 object Io {
   def files (dir: String): Array[java.io.File] = {
     val f = new File(dir)
-    f.listFiles.toArray
+    val files = f.listFiles
+    if (files == null)
+      throw new RuntimeException("No files in data directory: " + dir)
+    else files
   }
 
   /** Transforms contents of a file into a single String */
@@ -35,7 +38,16 @@ object Io {
 
 /** Simple functions for processing text */
 object Text {
-  def tokenize (s: String): Array[String] = { s.split("\\s+") }
+  val WHITESPACE = "\\s+"
+  
+  /** Tokenizes a document, removing everything not a stopwords filter */
+  def tokenize (s: String, filter: String => Boolean): Array[String] =
+    s.split(WHITESPACE).filter(filter)
+
+  /** Generates a Set that contains stop words from a file */
+  def stopWords (fname: String): Set[String] = {
+    Io.fileToString(new File(fname)).split(WHITESPACE).toSet
+  }
   
   /** Converts documents into a single array of words
    *
@@ -49,18 +61,19 @@ object Text {
    *
    * @return An array of words 
    */
-  def bow (docs: Array[String]): (Array[String], Array[Int]) = {
+  def bow (docs: Array[String], filter: String => Boolean):
+  (Array[String], Array[Int]) = {
     @tailrec
     def loop (i: Int, accuDocs: Array[String], accuAssig: Array[Int]):
     (Array[String], Array[Int]) = {
       if (i == docs.length) (accuDocs, accuAssig)
       else {
-	val nextDocs = tokenize(docs(i))
+	val nextDocs = tokenize(docs(i), filter)
 	val nextAssig = Array.fill(nextDocs.length)(i)
 	loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
       }
     }
-    val initAccuDocs = tokenize(docs(0))
+    val initAccuDocs = tokenize(docs(0), filter)
     val initAccuAssig = Array.fill(initAccuDocs.length)(0)
     if (docs.length == 1) (initAccuDocs, initAccuAssig)
     else loop(1, initAccuDocs, initAccuAssig)

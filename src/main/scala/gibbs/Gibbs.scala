@@ -48,7 +48,8 @@ import wrangle._
 abstract class Gibbs (val docs: Array[String], val T: Int,
 		      val alpha: Double, val beta: Double) {
   val D = docs.length
-  val (w, d) = Text.bow(docs)
+  val whitelist = Text.stopWords("data/WHITELIST")
+  val (w, d) = Text.bow(docs, (str: String) => whitelist(str))
   val N = w.length
   var z = Array.fill(N)(new Random().nextInt(T))
   val wIdx = canonicalWordIndices(w)
@@ -357,7 +358,7 @@ object TestGibbs {
 
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
-    val corpus = Io.rawCorpus("data/20_newsgroups/alt.atheism")
+    val corpus = Io.rawCorpus("data/20news-bydate-train/alt.atheism")
     val cg = new CollapsedGibbs(corpus, 15, 0.1, 0.1, corpus.length)
     repeat(0, 100000, cg)
   }
