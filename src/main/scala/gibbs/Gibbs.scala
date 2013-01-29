@@ -152,7 +152,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     loop(0, T, topicDistr)
     //println("topicDistr " + topicDistr.deep.mkString(" "))
 
-    Stats.sampleCategoricalCdf(Stats.normalize(topicDistr))
+    Stats.sampleCategorical(Stats.normalize(topicDistr))
   }
   
   /** Resamples one complete assignment for the corpus
@@ -314,14 +314,18 @@ object Stats {
   
   /** Samples from simple categorical distribution; takes a normalized
    probability measure and returns a randomly-sampled index */
-  def sampleCategoricalCdf (cdf: Array[Double]): Int = {
+  def sampleCategorical (cdf: Array[Double]): Int = {
     val r = sampler.nextDouble()
     @tailrec
-    def loop (currIdx: Int): Int = {
-      if (currIdx+1 >= cdf.length || r > cdf(currIdx)) currIdx
+    def loop (currIdx: Int): Int =
+      if (cdf(currIdx-1) <= r && r < cdf(currIdx)) currIdx
       else loop(currIdx+1)
+    (cdf.length, r < cdf(0)) match {
+      case (0, _) => throw new RuntimeException("CDF has 0 elements!")
+      case (1, _) => 0
+      case (_, true) => 0
+      case (_, _) => loop(1)
     }
-    loop(0)
   }
 }
 
