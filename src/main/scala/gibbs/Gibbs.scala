@@ -27,7 +27,6 @@ import wrangle._
  * d, `d(i)` is the document for the i-th word in the corpus
  * z, `z(i)` is the topic assignment of the i-th word in the corpus
  * W, the size of the vocabulary
- * selector, used to randomly pick topic assignments to update
  *
  * BOOKKEEPING VARIABLES
  * wIdx, `wIdx(w(i))` is the canonical identifier (an `Int`) of the i-th word
@@ -56,7 +55,6 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
   val W = wIdx.size
   var (allAssignedZ, wAssignedZ, allAssignedZInD) =
     assignmentMatrices(w, d, z, wIdx)
-  val selector = new Random()
 
   def this (docs: Array[String], T: Int, alpha: Double, beta: Double,
 	    allAssignedZ: Array[Int], wAssignedZ: Array[Array[Int]],
@@ -139,7 +137,6 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     val currTopic = z(index)
     val currDoc = d(index)
     
-    // MUTATES ACCUMULATOR
     @tailrec
     def loop (i: Int, limit: Int, accu: Array[Double]): Array[Double] = {
       if (i >= limit) accu
@@ -157,23 +154,31 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     Stats.sampleCategoricalCdf(Stats.normalize(topicDistr))
   }
   
-  /** Randomly resamples a word in the corpus
+  /** Resamples one complete assignment for the corpus
    */
   def resampleTopic (resampler: (Int, Int, Int, Int) => Double): Unit = {
-    val wordIdx = selector.nextInt(N)
-    val word = w(wordIdx)
-    val canonWordIdx = wIdx(word)
-    val doc = d(wordIdx)
-    val oldTopic = z(wordIdx)
-    val newTopic = resampleTopic(wordIdx, resampler)
-    
-    z(wordIdx) = newTopic
-    allAssignedZ(oldTopic) -= 1
-    allAssignedZ(newTopic) += 1
-    wAssignedZ(oldTopic)(canonWordIdx) -= 1
-    wAssignedZ(newTopic)(canonWordIdx) += 1
-    allAssignedZInD(oldTopic)(doc) -= 1
-    allAssignedZInD(newTopic)(doc) += 1
+    @tailrec
+    def loop (i: Int): Unit = {
+      if (i >= w.length) return
+      else {
+	val word = w(i)
+	val canonWordIdx = wIdx(word)
+	val doc = d(i)
+	val oldTopic = z(i)
+	val newTopic = resampleTopic(i, resampler)
+	
+	z(i) = newTopic
+	allAssignedZ(oldTopic) -= 1
+	allAssignedZ(newTopic) += 1
+	wAssignedZ(oldTopic)(canonWordIdx) -= 1
+	wAssignedZ(newTopic)(canonWordIdx) += 1
+	allAssignedZInD(oldTopic)(doc) -= 1
+	allAssignedZInD(newTopic)(doc) += 1
+	
+	loop(i+1)
+      }
+    }
+    loop(0)
   }
 }
 
@@ -331,10 +336,10 @@ object TestGibbs {
   */
 
   def repeat (i: Int, n: Int, cg: CollapsedGibbs): Unit = {
-    if (i == n) cg.resampleTopic()
+    if (i >= n) return
     else {
       cg.resampleTopic()
-      println(i)
+      println("ASSIGNMENT " + i + " COMPLETE")
       /*
       println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
       println("d: " + cg.d.deep.mkString(" "))
@@ -357,8 +362,19 @@ object TestGibbs {
 
   def main (args: Array[String]) = {
     // Test that the objects gets made n stuff
+    println("LOADING CORPUS...")
+    println()
     val corpus = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
+    
+    println("BUILDING COLLAPSED SAMPLER")
     val cg = new CollapsedGibbs(corpus, 15, 0.1, 0.1, corpus.length)
-    repeat(0, 100000, cg)
+    println("STATS:")
+    println("\tVocabulary:\t" + cg.W)
+    println("\tWords:\t\t" + cg.N)
+    println("\tDocuments:\t" + cg.D)
+    println()
+
+    println("RUNNING EXPERIMENT")
+    repeat(0, 3, cg)
   }
 }
