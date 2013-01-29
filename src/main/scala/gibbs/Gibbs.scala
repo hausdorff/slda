@@ -137,6 +137,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     val currTopic = z(index)
     val currDoc = d(index)
     
+    // Builds unnormalized topic distribution
     @tailrec
     def loop (i: Int, limit: Int, accu: Array[Double]): Array[Double] = {
       if (i >= limit) accu
@@ -286,11 +287,33 @@ extends Gibbs(docs, T, alpha, beta, allAssignedZ, wAssignedZ,
 object Stats {
   val sampler = new Random()
   
+  /** Returns normalized probability measure */
   def normalize (arr: Array[Double]): Array[Double] = {
-    val s = arr.reduceLeft(_+_)
-    arr.map(x => x / s)
+    // WARNING SIDE EFFECTS ON `arr`
+    @tailrec
+    def loop (i: Int, sum: Double, acc: Array[Double]): Array[Double] =
+      if (i >= acc.length) {
+	acc(acc.length-1) = 1 // make sure last element is 1 and not eg 0.999
+	acc
+      }
+      else {
+	val curr = (acc(i) / sum) + acc(i-1)
+	acc(i) = curr
+	loop(i+1, sum, acc)
+      }
+    arr.length match {
+      case 0 => arr
+      case 1 => Array(1)
+      case _ => {
+	val sum = arr.reduceLeft(_+_)
+	arr(0) = arr(0) / sum
+	loop(1, sum, arr)
+      }
+    }
   }
   
+  /** Samples from simple categorical distribution; takes a normalized
+   probability measure and returns a randomly-sampled index */
   def sampleCategoricalCdf (cdf: Array[Double]): Int = {
     val r = sampler.nextDouble()
     @tailrec
@@ -376,5 +399,6 @@ object TestGibbs {
 
     println("RUNNING EXPERIMENT")
     repeat(0, 3, cg)
+    //println("w: \"" + cg.w.deep.mkString("\" \"") + "\"")
   }
 }
