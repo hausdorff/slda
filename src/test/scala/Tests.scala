@@ -5,6 +5,22 @@ import wrangle._
 import org.scalatest.FunSuite
 import java.util.{ Arrays => Arrays }
 
+object Helpers {
+  // terribly abstracted; counts ratio of first element to second over many
+  // experiments
+  def samplingExpt(cdf: Array[Double]): Double = {
+    var one = 0
+    var two = 0.0
+    for (i <- 0 to 10000000) {
+      val res = Stats.sampleCategorical(cdf)
+      if (res == 0) one += 1
+      else two += 1
+    }
+    one/(one+two)
+  }
+}
+
+
 class StatsTests extends FunSuite {
   test("normalize") {
     val arr0 = Array[Double]()
@@ -33,16 +49,23 @@ class StatsTests extends FunSuite {
   }
 
   test("sampleCategorical") {
+    assert(Stats.sampleCategorical(Stats.normalize(Array(1))) == 0)
+    
     val arr1 = Array[Double](2, 1)
-    val cdf = Stats.normalize(arr1)
-    var one = 0
-    var two = 0.0
-    for (i <- 0 to 10000000) {
-      val res = Stats.sampleCategorical(cdf)
-      if (res == 0) one += 1
-      else two += 1
-    }
-    assert(one/(one+two) < 0.69 && one/(one+two) > 0.64)
+    val cdf1 = Stats.normalize(arr1)
+    val res1 = Helpers.samplingExpt(cdf1)
+    assert(res1 < 0.69 && res1 > 0.64,
+	   "statistical test failed with value " + res1 +
+	   "should have been <0.69 and > 0.64; this could either be " +
+	   "chance or it could be a real issue.")
+
+    val arr2 = Array[Double](1,2,1)
+    val cdf2 = Stats.normalize(arr2)
+    val res2 = Helpers.samplingExpt(cdf2)
+    assert(res2 < 0.28 && res2 > 0.22,
+	   "statistical test failed with value " + res2 +
+	   "should have been <0.22 and > 0.28; this could either be " +
+	   "chance or it could be a real issue.")
   }
 }
 
