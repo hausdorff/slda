@@ -60,7 +60,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
 	    allAssignedZ: Array[Int], wAssignedZ: Array[Array[Int]],
 	    allAssignedZInD: Array[Array[Int]]) = {
     this(docs, T, alpha, beta)
-    this.allAssignedZ = allAssignedZ
+    this.allAssignedZ = GibbsUtil.copy1dArr(allAssignedZ)
     this.wAssignedZ = GibbsUtil.copy2dArr(wAssignedZ)
     this.allAssignedZInD = GibbsUtil.copy2dArr(allAssignedZInD)
   }
