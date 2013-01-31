@@ -61,8 +61,8 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
 	    allAssignedZInD: Array[Array[Int]]) = {
     this(docs, T, alpha, beta)
     this.allAssignedZ = allAssignedZ
-    this.wAssignedZ = wAssignedZ
-    this.allAssignedZInD = allAssignedZInD
+    this.wAssignedZ = GibbsUtil.copy2dArr(wAssignedZ)
+    this.allAssignedZInD = GibbsUtil.copy2dArr(allAssignedZInD)
   }
 
   def pointPosterior (currWord: Int, newTopic: Int, currTopic: Int,
@@ -285,6 +285,12 @@ extends Gibbs(docs, T, alpha, beta, allAssignedZ, wAssignedZ,
 }
 
 object GibbsUtil {
+  def copy1dArr [T:Manifest](arr: Array[T]): Array[T] = {
+    val newarr = new Array[T](arr.length)
+    Array.copy(arr, 0, newarr, 0, arr.length)
+    newarr
+  }
+  
   def copy2dArr [T:Manifest](arr: Array[Array[T]]): Array[Array[T]] = {
     val newarr = new Array[Array[T]](arr.length)
     for (i <- 0 to (arr.length-1)) {
