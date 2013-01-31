@@ -284,6 +284,17 @@ extends Gibbs(docs, T, alpha, beta, allAssignedZ, wAssignedZ,
   }
 }
 
+object GibbsUtil {
+  def copy2dArr [T:Manifest](arr: Array[Array[T]]): Array[Array[T]] = {
+    val newarr = new Array[Array[T]](arr.length)
+    for (i <- 0 to (arr.length-1)) {
+      newarr(i) = new Array[T](arr(i).length)
+      Array.copy(arr(i), 0, newarr(i), 0, arr(i).length)
+    }
+    newarr
+  }
+}
+
 object Stats {
   val sampler = new Random()
   
