@@ -23,17 +23,27 @@ object Helpers {
 class GibbsUtilTests extends FunSuite {
   test("copy1dArr") {
     val a1 = Array(1, 2, 3)
+    var res1 = GibbsUtil.copy1dArr[Int](a1)
     val target1 = Array(1, 2, 3)
     
-    assert(GibbsUtil.copy1dArr[Int](a1).deep == target1.deep)
+    assert(res1.deep == target1.deep)
+    res1(0) = 2
+    // make sure the deep references point to different arrays
+    assert(res1.deep != target1.deep)
+    
     assert(Arrays.equals(GibbsUtil.copy1dArr[Int](Array()), Array[Int]()))
   }
   
   test("copy2dArr") {
     val a1 = Array(Array(1), Array(2))
+    var res1 = GibbsUtil.copy2dArr[Int](a1)
     val target1 = Array(Array(1), Array(2))
     
-    assert(GibbsUtil.copy2dArr[Int](a1).deep == target1.deep)
+    assert(res1.deep == target1.deep)
+    res1(0)(0) = 2
+    // make sure the deep references point to different arrays
+    assert(res1.deep != target1.deep)
+    
     assert(GibbsUtil.copy2dArr[Int](Array()).deep == Array[Int]().deep)
     assert(GibbsUtil.copy2dArr[Int](Array(Array())).deep ==
       Array(Array()).deep)
