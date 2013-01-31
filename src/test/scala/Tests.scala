@@ -20,6 +20,17 @@ object Helpers {
   }
 }
 
+class GibbsUtilTests extends FunSuite {
+  test("copy2dArr") {
+    val a1 = Array(Array(1), Array(2))
+    val target1 = Array(Array(1), Array(2))
+    
+    assert(GibbsUtil.copy2dArr[Int](a1).deep == target1.deep)
+    assert(GibbsUtil.copy2dArr[Int](Array()).deep == Array[Int]().deep)
+    assert(GibbsUtil.copy2dArr[Int](Array(Array())).deep ==
+      Array(Array()).deep)
+  }
+}
 
 class StatsTests extends FunSuite {
   test("normalize") {
