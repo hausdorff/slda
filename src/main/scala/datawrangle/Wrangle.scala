@@ -88,6 +88,12 @@ object Text {
     if (docs.length == 1) (initAccuDocs, initAccuAssig)
     else loop(1, initAccuDocs, initAccuAssig)
   }
+
+  /** Wrapper simply returns the tokenized document */
+  def bow (doc: String, filter: String => Boolean): Array[String] = {
+    val (words, docs) = bow(Array(doc), filter)
+    words
+  }
 }
 
 object DataConsts {
