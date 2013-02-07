@@ -21,6 +21,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var cntTopicAssgInCrps = Array(T)(0)
   var currWord = 0
 
+  /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
     for (i <- 0 to docs.length-1) ingestDoc(docs(i))
   
