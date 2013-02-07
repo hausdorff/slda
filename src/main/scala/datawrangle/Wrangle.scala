@@ -65,10 +65,11 @@ object Text {
    * array.
    *
    * Additionally, we return an array that maps each word to the document
-   * it came from, ie, the `word[i]` will have come from document
-   * `assignment[i]`
+   * it came from, ie, the word `accuDocs(i)` will have come from document
+   * `accuAssig[i]`
    *
-   * @return An array of words 
+   * @return accuDocs array of words
+   * @return accuAssig array of Ints -- accuAssig(i) is document # of ith wrd
    */
   def bow (docs: Array[String], filter: String => Boolean):
   (Array[String], Array[Int]) = {
