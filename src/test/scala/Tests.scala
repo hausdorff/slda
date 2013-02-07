@@ -99,6 +99,13 @@ class StatsTests extends FunSuite {
 }
 
 class GibbsTest extends FunSuite {
+  test("Load all data") {
+    val sim3 = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
+    val rel3 = Io.rawCorpus(DataConsts.REL_3_TRAIN_DOCS)
+    val diff3 = Io.rawCorpus(DataConsts.DIFF_3_TRAIN_DOCS)
+    println(sim3.length + " " + rel3.length + " " + diff3.length)
+  }
+  
   test("Gibbs sampler on sim-3") {
     // Test that the objects gets made n stuff
     println("LOADING CORPUS...")
