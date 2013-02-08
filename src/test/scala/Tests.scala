@@ -1,6 +1,8 @@
 package tests
 
 import gibbs._
+import lda.Stats
+import lda.Math
 import wrangle._
 import org.scalatest.FunSuite
 import java.util.{ Arrays => Arrays }
@@ -95,6 +97,20 @@ class StatsTests extends FunSuite {
 	   "statistical test failed with value " + res2 +
 	   "should have been <0.22 and > 0.28; this could either be " +
 	   "chance or it could be a real issue.")
+  }
+}
+
+class MathTests extends FunSuite {
+  test("norm") {
+    val a1 = Array(1.0,2,3,4)
+    val answer1 = Math.norm(a1, 1)
+    val answer2 = Math.norm(a1, 2)
+    val target1 = 10
+    val target2 = math.pow(30, 0.5)
+    assert(answer1 == target1, "norms don't match: " + target1 + " " +
+	   answer1)
+    assert(answer2 == target2, "norms don't match: " + target2 + " " +
+	   answer2)
   }
 }
 
