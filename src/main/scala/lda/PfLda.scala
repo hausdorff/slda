@@ -18,8 +18,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 	     val smplSize: Int, val numParticles: Int, ess: Double) {
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
-  var cntWrdAssgTopicInCrps = HashMap[(String,Int),Int]()
-  var cntTopicAssgInCrps = Array.fill(T)(0)
   var pweights = Array.fill(numParticles)(1.0/numParticles)
   var particles = Array.fill(numParticles)(new Random().nextInt(T))
   var vocabSize = 0
@@ -28,7 +26,12 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   def ingestDocs (docs: Array[String]): Unit =
     docs.foreach{ doc => ingestDoc(doc) }
   
-  /** Ingest one document, update LDA as we go */
+  /** Ingest one document, update LDA as we go
+   *
+   * For each new word, we sample a topic assignment from the posterior.
+   * Then we reweight the particles. Then if the 2norm of the weight vector
+   * lies below a certain threshold, we resample the topics
+   */
   def ingestDoc(doc: String): Unit = {
     // get all words in doc (remember to strip out whitelist
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
@@ -48,6 +51,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def rejuvenate (): Unit = { }
 
+  /** takes index of current particle,  */
   private def reweightParticle (i: Int): Unit = {
     // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
   }
@@ -55,3 +59,44 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   private def resampleParticle (i: Int): Unit = { }
 }
 
+/** Tracks update progress for the document-specific iterative update
+ equation of the particle filtered LDA implementation. */
+class DocumentUpdateVector (val topics: Int) {
+  // in the paper this is called n^{(d_j)}_{z_j, i\j}
+  var timesTopicOccursInDoc = Array.fill(topics)(0)
+  // in the paper this is called n^{(d_j)}_{., i\j}
+  var wordsInDoc = 0
+
+  def numTimesTopicOccursInDoc (topic: Int): Int =
+    timesTopicOccursInDoc(topic)
+
+  def numWordsInDoc (): Int = wordsInDoc
+
+  /** Update vector based on observation: word and topic assigned to it */
+  def update (word: String, topic: Int): Unit = {
+    timesTopicOccursInDoc(topic) += 1
+    wordsInDoc += 1
+    throw new RuntimeException("not sure if wordsInDoc should be updated...")
+  }
+}
+
+/** Tracks update progress for the global iterative update equation of the
+ particle filtered LDA implementation. */
+class GlobalUpdateVector (val topics: Int) {
+  // in the paper, this is called n^{(w_j)}_{z_j,i\j}
+  var timesWordAssignedTopic = HashMap[(String,Int),Int]()
+  // in the paper, this is called n^{(.)}_{z_j, i\j}
+  var timesTopicAssignedTotal = Array.fill(topics)(0)
+
+  def numTimesWordAssignedTopic (word: String, topic: Int): Int =
+    timesWordAssignedTopic((word, topic))
+
+  def numTimesTopicAssignedTotal (topic: Int): Int =
+    timesTopicAssignedTotal(topic)
+
+  /** Updates vector based on observation: word and topic assigned to it */
+  def update (word: String, topic: Int): Unit = {
+    timesWordAssignedTopic((word, topic)) += 1
+    timesTopicAssignedTotal(topic) += 1
+  }
+}
