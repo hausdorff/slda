@@ -6,7 +6,7 @@ import scala.util.{ Random => Random }
 object Stats {
   val sampler = new Random()
   
-  /** Normalizes argument by side-effect; good b/c for low-mem situations */
+  /** Normalizes argument by side-effect; good for low-mem situations */
   def normalize (arr: Array[Double]): Array[Double] = {
     // WARNING SIDE EFFECTS ON `arr`
     @tailrec
