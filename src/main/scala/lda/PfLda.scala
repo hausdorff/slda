@@ -35,11 +35,22 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   def ingestDoc(doc: String): Unit = {
     // get all words in doc (remember to strip out whitelist
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
-    var topicDistr = Array.fill(T)(0.0)
-    Words.foreach{ word => processWord(word, topicDistr) }
+
+    // build vector representing doc to maybe put in reservoir
+    var docVect = new DocumentUpdateVector(T)
+    (0 to Words.length).foreach{ i => processWord(i, docVect, Words) }
+    //addToReservoir()
+    //addToRejuvenationSet()
   }
   
-  private def processWord (word: String, topicDistr: Array[Double]): Unit = {
+  private def processWord (i: Int, v: DocumentUpdateVector,
+			   words: Array[String]): Unit = {
+    if (i == 0) throw new RuntimeException("processWord is unable to proc the first word right now!")
+    
+    val currword = words(i)
+    addWordIfNotSeen(currword)
+    
+    val prevword = words(i-1)
     (0 to pweights.length-1).foreach { i => reweightParticle(i) }
     // sample topic assignment for current word for each particle
     (0 to particles.length-1).foreach { i => resampleParticle(i) }
