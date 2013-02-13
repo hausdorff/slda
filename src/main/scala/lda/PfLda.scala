@@ -57,6 +57,13 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
 
   private def resampleParticle (i: Int): Unit = { }
+
+  private def addWordIfNotSeen (word: String): Unit = {
+    if (!(vocabToId contains word)) {
+      vocabToId(word) = vocabSize
+      vocabSize += 1
+    }
+  }
 }
 
 /** Tracks update progress for the document-specific iterative update
