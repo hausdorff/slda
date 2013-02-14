@@ -38,7 +38,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
     // build vector representing doc to maybe put in reservoir
     var docVect = new DocumentUpdateVector(T)
-    (0 to Words.length).foreach{ i => processWord(i, docVect, Words) }
+    (0 to Words.length-1).foreach{ i => processWord(i, docVect, Words) }
     //addToReservoir()
     //addToRejuvenationSet()
   }
@@ -48,10 +48,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     if (i == 0) throw new RuntimeException(
       "processWord is unable to proc the first word right now!")
     
-    val currword = words(i)
-    addWordIfNotSeen(currword)
+    addWordIfNotSeen(words(i))
     
-    val prevword = words(i-1)
     (0 to pweights.length-1).foreach { i => reweightParticle(i) }
     // sample topic assignment for current word for each particle
     (0 to particles.length-1).foreach { i => resampleParticle(i) }
