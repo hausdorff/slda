@@ -18,8 +18,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 	     val smplSize: Int, val numParticles: Int, ess: Double) {
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
-  var pweights = Array.fill(numParticles)(1.0/numParticles)
-  var particles = Array.fill(numParticles)(new Particle(T))
+  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles))
   var vocabSize = 0
 
   /** Ingests set of documents, updating LDA run as we go */
@@ -38,7 +37,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
     (0 to Words.length-1).foreach{ i => processWord(i, Words) }
     //addWordsToReservoir()
-    //addToRejuvenationSet()
   }
   
   /** Process the ith entry in `words` */
@@ -48,23 +46,21 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     
     addWordIfNotSeen(words(i))
     
-    (0 to pweights.length-1).foreach { i => reweightParticle(i) }
+    particles.foreach { particle => particle.unnormalizedReweight() }
     // sample topic assignment for current word for each particle
-    (0 to particles.length-1).foreach { i => resampleParticle(i) }
+    particles.foreach { particle => particle.resample() }
     // normalize weights
-    Stats.normalize(pweights)
+    //Stats.normalize(pweights)
     // get inverse 2-norm of weights, check against ESS
-    if (Math.norm(pweights, 2) <= ess) rejuvenate()
+    //if (Math.norm(pweights, 2) <= ess) rejuvenate()
   }
 
-  private def rejuvenate (): Unit = { }
+  private def rejuvenate (): Unit = { throw new RuntimeException("rejuvenate not implemented") }
 
   /** takes index of current particle,  */
   private def reweightParticle (i: Int): Unit = {
     // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
   }
-
-  private def resampleParticle (i: Int): Unit = { }
 
   private def addWordIfNotSeen (word: String): Unit = {
     if (!(vocabToId contains word)) {
@@ -74,9 +70,13 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
 }
 
-class Particle (val topics: Int) {
+class Particle (val topics: Int, val initialWeight: Double) {
   var docVect = new DocumentUpdateVector(topics)
   var globalVect = new GlobalUpdateVector(topics)
+  var weight = initialWeight
+
+  def unnormalizedReweight () = throw new RuntimeException("unnormalizedReweight not implemented")
+  def resample (): Unit = { throw new RuntimeException("resampleParticle not implemented") }
 }
 
 /** Tracks update progress for the document-specific iterative update
