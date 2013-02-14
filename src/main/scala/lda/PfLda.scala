@@ -19,7 +19,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
   var pweights = Array.fill(numParticles)(1.0/numParticles)
-  var particles = Array.fill(numParticles)(new Random().nextInt(T))
+  var particles = Array.fill(numParticles)(new Particle(T))
   var vocabSize = 0
 
   /** Ingests set of documents, updating LDA run as we go */
@@ -36,15 +36,13 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     // get all words in doc (remember to strip out whitelist
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
 
-    // build vector representing doc to maybe put in reservoir
-    var docVect = new DocumentUpdateVector(T)
-    (0 to Words.length-1).foreach{ i => processWord(i, docVect, Words) }
-    //addToReservoir()
+    (0 to Words.length-1).foreach{ i => processWord(i, Words) }
+    //addWordsToReservoir()
     //addToRejuvenationSet()
   }
   
-  private def processWord (i: Int, v: DocumentUpdateVector,
-			   words: Array[String]): Unit = {
+  /** Process the ith entry in `words` */
+  private def processWord (i: Int, words: Array[String]): Unit = {
     if (i == 0) throw new RuntimeException(
       "processWord is unable to proc the first word right now!")
     
@@ -74,6 +72,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       vocabSize += 1
     }
   }
+}
+
+class Particle (val topics: Int) {
+  var docVect = new DocumentUpdateVector(topics)
+  var globalVect = new GlobalUpdateVector(topics)
 }
 
 /** Tracks update progress for the document-specific iterative update
