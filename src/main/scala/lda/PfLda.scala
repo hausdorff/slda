@@ -28,8 +28,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   
   /** Ingest one document, update LDA as we go
    *
-   * For each new word, we sample a topic assignment from the posterior.
-   * Then we reweight the particles. Then if the 2norm of the weight vector
+   * For each new word, we reweight the particles. Then we sample a topic
+   * assignment from the posterior. Then if the 2norm of the weight vector
    * lies below a certain threshold, we resample the topics
    */
   def ingestDoc(doc: String): Unit = {
@@ -45,7 +45,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   
   private def processWord (i: Int, v: DocumentUpdateVector,
 			   words: Array[String]): Unit = {
-    if (i == 0) throw new RuntimeException("processWord is unable to proc the first word right now!")
+    if (i == 0) throw new RuntimeException(
+      "processWord is unable to proc the first word right now!")
     
     val currword = words(i)
     addWordIfNotSeen(currword)
