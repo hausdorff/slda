@@ -50,7 +50,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     addWordIfNotSeen(currword)
     
     particles.foreach { particle => particle.unnormalizedReweight(currword) }
-    particles.foreach { particle => particle.sample(currword) }
+    particles.foreach { particle => particle.transition(currword) }
     // normalize weights
     //Stats.normalize(pweights)
     // get inverse 2-norm of weights, check against ESS
@@ -59,6 +59,9 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def rejuvenate (): Unit = { throw new RuntimeException("rejuvenate not implemented") }
 
+  /** Adds `word` to the current vocab map; uses current vocabSize as the id,
+   i.e., if `word` is the nth seen so far, then n happens to be == vocabSize
+   */
   private def addWordIfNotSeen (word: String): Unit = {
     if (!(vocabToId contains word)) {
       vocabToId(word) = vocabSize
@@ -74,13 +77,20 @@ class Particle (val topics: Int, val initialWeight: Double) {
 
   /** Generates an unnormalized weight for the particle; returns new wgt */
   def unnormalizedReweight (word: String): Double =
+    // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
     throw new RuntimeException("unnormalizedReweight not implemented")
 
-  /** Samples a topic assignment for the current observation; rtrns topic */
-  def sample (word: String): Int =
-    // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
-    throw new RuntimeException("resampleParticle not implemented")
+  /** "Transitions" particle to next state by sampling topic for `word`,
+   which is our new observation; returns that topic */
+  def transition (word: String): Int = {
+    val cdf = posterior(word)
+    val sampledTopic = Stats.sampleCategorical(cdf)
+    docVect.update(word, sampledTopic)
+    globalVect.update(word, sampledTopic)
+    sampledTopic
+  }
 
+  /** Generates the posterior distribution P(z_j|Z_{i-1}, w_i) */
   private def posterior (word: String): Array[Double] =
     throw new RuntimeException("posterior not implemented")
 }
