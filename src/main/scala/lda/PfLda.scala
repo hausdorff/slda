@@ -47,12 +47,13 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     }
     
     val currword = words(i)
+    // side-effects; must happen before particle updates!
     addWordIfNotSeen(currword)
     
     particles.foreach { particle => particle.unnormalizedReweight(currword) }
-    particles.foreach { particle => particle.transition(currword) }
-    // normalize weights
-    //Stats.normalize(pweights)
+    particles.foreach { particle => particle.transition(currword,
+							currVocabSize) }
+    normalizeWeights()
     // get inverse 2-norm of weights, check against ESS
     //if (Math.norm(pweights, 2) <= ess) rejuvenate()
   }
@@ -67,6 +68,15 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       vocabToId(word) = vocabSize
       vocabSize += 1
     }
+  }
+
+  /** Takes weights of particles, normalizes them, writes them back; note:
+   SIDE-EFFECTS. */
+  private def normalizeWeights (): Unit = {
+    var weights = Array.fill(particles.length)(0.0)
+    for (i <- 0 to particles.length-1) weights(i) = particles(i).weight
+    Stats.normalize(weights)
+    for (i <- 0 to particles.length-1) particles(i).weight = weights(i)
   }
 }
 
