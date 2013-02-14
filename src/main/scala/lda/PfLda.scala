@@ -44,11 +44,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     if (i == 0) throw new RuntimeException(
       "processWord is unable to proc the first word right now!")
     
-    addWordIfNotSeen(words(i))
+    val currword = words(i)
+    addWordIfNotSeen(currword)
     
-    particles.foreach { particle => particle.unnormalizedReweight() }
-    // sample topic assignment for current word for each particle
-    particles.foreach { particle => particle.resample() }
+    particles.foreach { particle => particle.unnormalizedReweight(currword) }
+    particles.foreach { particle => particle.sample(currword) }
     // normalize weights
     //Stats.normalize(pweights)
     // get inverse 2-norm of weights, check against ESS
@@ -75,8 +75,13 @@ class Particle (val topics: Int, val initialWeight: Double) {
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
 
-  def unnormalizedReweight () = throw new RuntimeException("unnormalizedReweight not implemented")
-  def resample (): Unit = { throw new RuntimeException("resampleParticle not implemented") }
+  /** Generates an unnormalized weight for the particle; returns new wgt */
+  def unnormalizedReweight (word: String): Double =
+    throw new RuntimeException("unnormalizedReweight not implemented")
+
+  /** Samples a topic assignment for the current observation; rtrns topic */
+  def sample (word: String): Int =
+    throw new RuntimeException("resampleParticle not implemented")
 }
 
 /** Tracks update progress for the document-specific iterative update
