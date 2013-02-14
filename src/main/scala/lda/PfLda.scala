@@ -59,7 +59,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     //if (Math.norm(pweights, 2) <= ess) rejuvenate()
   }
 
-  private def rejuvenate (): Unit = { throw new RuntimeException("rejuvenate not implemented") }
+  private def rejuvenate (): Unit =
+    throw new RuntimeException("rejuvenate not implemented")
 
   /** Adds `word` to the current vocab map; uses current currVocabSize as
    the id, i.e., if `word` is the nth seen so far, then n happens to be ==
@@ -144,7 +145,6 @@ class DocumentUpdateVector (val topics: Int) {
   def update (word: String, topic: Int): Unit = {
     timesTopicOccursInDoc(topic) += 1
     wordsInDoc += 1
-    throw new RuntimeException("not sure if wordsInDoc should be updated...")
   }
 }
 
