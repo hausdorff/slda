@@ -18,8 +18,9 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 	     val smplSize: Int, val numParticles: Int, ess: Double) {
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
-  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles))
-  var vocabSize = 0
+  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
+							alpha, beta))
+  var currVocabSize = 0
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -60,13 +61,14 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def rejuvenate (): Unit = { throw new RuntimeException("rejuvenate not implemented") }
 
-  /** Adds `word` to the current vocab map; uses current vocabSize as the id,
-   i.e., if `word` is the nth seen so far, then n happens to be == vocabSize
+  /** Adds `word` to the current vocab map; uses current currVocabSize as
+   the id, i.e., if `word` is the nth seen so far, then n happens to be ==
+   currVocabSize
    */
   private def addWordIfNotSeen (word: String): Unit = {
     if (!(vocabToId contains word)) {
-      vocabToId(word) = vocabSize
-      vocabSize += 1
+      vocabToId(word) = currVocabSize
+      currVocabSize += 1
     }
   }
 
@@ -80,7 +82,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
 }
 
-class Particle (val topics: Int, val initialWeight: Double) {
+class Particle (val topics: Int, val initialWeight: Double,
+		val alpha: Double, val beta: Double) {
   var docVect = new DocumentUpdateVector(topics)
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
@@ -91,18 +94,37 @@ class Particle (val topics: Int, val initialWeight: Double) {
     throw new RuntimeException("unnormalizedReweight not implemented")
 
   /** "Transitions" particle to next state by sampling topic for `word`,
-   which is our new observation; returns that topic */
-  def transition (word: String): Int = {
-    val cdf = posterior(word)
+   which is our new observation. w is the *current* size of the vocabulary;
+   returns that topic */
+  def transition (word: String, w: Int): Int = {
+    val cdf = posterior(word, w)
     val sampledTopic = Stats.sampleCategorical(cdf)
     docVect.update(word, sampledTopic)
     globalVect.update(word, sampledTopic)
     sampledTopic
   }
 
-  /** Generates the posterior distribution P(z_j|Z_{i-1}, w_i) */
-  private def posterior (word: String): Array[Double] =
-    throw new RuntimeException("posterior not implemented")
+  /** Generates the normalized posterior distribution P(z_j|Z_{i-1}, w_i);
+   w is the *current* size of the vocabulary */
+  private def posterior (word: String, w: Int): Array[Double] = {
+    var unnormalizedCdf = Array.fill(topics)(0.0)
+    (0 to topics-1).foreach { i =>
+      unnormalizedCdf(i) = updateEqn(word, i, w) }
+    Stats.normalize(unnormalizedCdf)
+  }
+
+  /** Applies the o-LDA update equation from "Online Inference of Topics..."
+   by Canini, Shi, Griffiths. The relevant equation is eqn (2). w is the
+   *current* size of the vocabulary */
+  private def updateEqn (word: String, topic: Int, w: Int): Double = {
+    val globalUpdate = (globalVect.numTimesWordAssignedTopic(word, topic)
+			+ beta) /
+    (globalVect.numTimesTopicAssignedTotal(topic) + w * beta)
+
+    val docUpdate = (docVect.numTimesTopicOccursInDoc(topic) + alpha) /
+    (docVect.numWordsInDoc)
+    globalUpdate * docUpdate
+  }
 }
 
 /** Tracks update progress for the document-specific iterative update
