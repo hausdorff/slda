@@ -17,8 +17,5 @@ class PfLda extends FunSuite {
     //println(pflda.Whitelist)
     println(pflda.vocabToId.size)
     println("weights: " + pflda.pweights.deep)
-    println("cntWrdAssgTopicInCrps: " + pflda.cntWrdAssgTopicInCrps)
-    println("cntTopicAssgInCrps: " + pflda.cntTopicAssgInCrps.deep)
-    println(pflda.particles.deep)
   }
 }
