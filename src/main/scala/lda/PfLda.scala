@@ -41,8 +41,10 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   
   /** Process the ith entry in `words` */
   private def processWord (i: Int, words: Array[String]): Unit = {
-    if (i == 0) throw new RuntimeException(
-      "processWord is unable to proc the first word right now!")
+    if (i == 0) {
+      throw new RuntimeException("processWord is unable to proc the first word right now!")
+      //initializeParticle()
+    }
     
     val currword = words(i)
     addWordIfNotSeen(currword)
@@ -56,11 +58,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
 
   private def rejuvenate (): Unit = { throw new RuntimeException("rejuvenate not implemented") }
-
-  /** takes index of current particle,  */
-  private def reweightParticle (i: Int): Unit = {
-    // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
-  }
 
   private def addWordIfNotSeen (word: String): Unit = {
     if (!(vocabToId contains word)) {
@@ -81,7 +78,11 @@ class Particle (val topics: Int, val initialWeight: Double) {
 
   /** Samples a topic assignment for the current observation; rtrns topic */
   def sample (word: String): Int =
+    // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
     throw new RuntimeException("resampleParticle not implemented")
+
+  private def posterior (word: String): Array[Double] =
+    throw new RuntimeException("posterior not implemented")
 }
 
 /** Tracks update progress for the document-specific iterative update
