@@ -20,6 +20,32 @@ class Stream extends FunSuite {
     }
     assert(exceptionCaught)
   }
+
+  def randomTest2 (setSz: Int, lstSz: Int): AssociativeStreamSampler[Int] = {
+    val r = new Random()
+    def loop (i: Int, accu: AssociativeStreamSampler[Int]):
+    AssociativeStreamSampler[Int] = {
+      if (i == lstSz) accu
+      else {
+	accu.add(r.nextInt(4))
+	loop(i+1, accu)
+      }
+    }
+    var rs = new ReservoirSampler[Int](setSz)
+    rs.addAll(Array(0,0,0))
+    loop(0, rs)
+  }
+
+  test("sanity check -- make samples *look* good") {
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+    println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
+  }
   
   test("Test reservoir sampler") {
     val r = new Random()
@@ -37,11 +63,10 @@ class Stream extends FunSuite {
       rs.addAll(Array(0,0,0))
       loop(0, rs)
     }
-    
+
     var test1 = new ReservoirSampler[Int](3)
     test1.addAll(Array(1,2,3))
     val target1 = Array[Int](1,2,3)
-    println(test1.getSampleSet().mkString(" "))
     assert(test1.getSampleSet().deep == target1.deep)
     assert(test1.occupied == 3)
     assert(test1(0) == 1)
