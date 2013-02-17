@@ -44,10 +44,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   /** Process the ith entry in `words`; copied pretty much verbatim from
    Algorithm 4 of Canini, et al "Online Inference of Topics..." */
   private def processWord (i: Int, words: Array[String]): Unit = {
-    if (i == 0) {
-      throw new RuntimeException("processWord is unable to proc the first word right now!")
-    }
-    
     val currword = words(i)
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
     
