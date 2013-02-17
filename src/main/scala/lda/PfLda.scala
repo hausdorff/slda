@@ -18,9 +18,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 	     val smplSize: Int, val numParticles: Int, ess: Double) {
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
-  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
-							alpha, beta))
+  var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
+  
+  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
+							alpha, beta, rejuvSeq))
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -94,7 +96,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
-		val alpha: Double, val beta: Double) {
+		val alpha: Double, val beta: Double,
+		val rejuvSeq: ReservoirSampler[Array[String]]) {
+  /* NOTE: `rejuvSeq` depends on the PfLda class to populate it with the
+   documents that it will use for rejuvenation; it DEPENDS ON SIDE-EFFECTS to do
+   its job. */
   var docVect = new DocumentUpdateVector(topics)
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
