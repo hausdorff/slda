@@ -191,14 +191,18 @@ class GlobalUpdateVector (val topics: Int) {
   var timesTopicAssignedTotal = Array.fill(topics)(0)
 
   def numTimesWordAssignedTopic (word: String, topic: Int): Int =
-    timesWordAssignedTopic((word, topic))
+    if (timesWordAssignedTopic contains (word,topic))
+      timesWordAssignedTopic((word, topic))
+    else 0
 
   def numTimesTopicAssignedTotal (topic: Int): Int =
     timesTopicAssignedTotal(topic)
 
   /** Updates vector based on observation: word and topic assigned to it */
   def update (word: String, topic: Int): Unit = {
-    timesWordAssignedTopic((word, topic)) += 1
+    if (timesWordAssignedTopic contains (word,topic))
+      timesWordAssignedTopic((word, topic)) += 1
+    else timesWordAssignedTopic((word,topic)) = 1
     timesTopicAssignedTotal(topic) += 1
   }
 }
