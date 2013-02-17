@@ -62,14 +62,7 @@ AssociativeStreamSampler[T] () {
   }
 
   def addAll (items: Array[T]): ReservoirSampler[T] = {
-    @tailrec
-    def loop (i: Int): Unit =
-      if (i >= items.length) Unit
-      else {
-	add(items(i))
-	loop(i+1)
-      }
-    loop(0)
+    items.foreach { item => add(item) }
     this
   }
 
