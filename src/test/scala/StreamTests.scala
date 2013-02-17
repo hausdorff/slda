@@ -54,6 +54,14 @@ class Stream extends FunSuite {
       assert(sampler.addItem(1) == 0)
       if (sampler.addItem(1) == -1) count += 1 }
     assert(count < 6000 && count > 4000, "sampler failed a statistical test")
+
+    count = 0
+    (0 to 10000).foreach { i =>
+      var sampler = new ReservoirSampler[Int](2)
+      assert(sampler.addItem(1) == 0)
+      assert(sampler.addItem(1) == 1)
+      if (sampler.addItem(1) == -1) count += 1 }
+    assert(count < 4000 && count > 2000, "sampler failed a statistical test")
   }
   
   test("Test reservoir sampler") {
