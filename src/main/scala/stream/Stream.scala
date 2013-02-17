@@ -50,7 +50,7 @@ AssociativeStreamSampler[T] () {
   var randombits = new Random()
 
   def add (item: T): ReservoirSampler[T] = {
-    if(currIdx >= k) {
+    if (currIdx >= k) {
       // IMPORTANT: `nextInt()` not inclusive, so the `+1` is required
       val randIdx = randombits.nextInt(currIdx+1)
       if (randIdx < k) sample(randIdx) = item
@@ -66,8 +66,15 @@ AssociativeStreamSampler[T] () {
     this
   }
 
-  def apply (i: Int): T = sample(i)
+  def apply (i: Int): T = {
+    if (i >= currIdx)
+      throw new RuntimeException("reservoir sample hasn't seen " + i +
+				 " objects yet!")
+    else sample(i)
+  }
 
+  /** IMPORTANT: if we've seen < k elements, then the array beyond what was
+   explicitly populated will be GARBAGE. DO NOT use in place of `apply()`! */
   def getSampleSet () = sample
 
   /** Number of elemtents in reservoir */
