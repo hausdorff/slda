@@ -88,10 +88,17 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   /** Takes weights of particles, normalizes them, writes them back; note:
    SIDE-EFFECTS. */
   private def normalizeWeights (): Unit = {
-    var weights = Array.fill(particles.length)(0.0)
-    for (i <- 0 to particles.length-1) weights(i) = particles(i).weight
+    var weights = particleWeightArray()
     Stats.normalize(weights)
     for (i <- 0 to particles.length-1) particles(i).weight = weights(i)
+  }
+
+  /** Helper method puts the weights of particles into an array, so that
+   `particles(i) == weights(i)` */
+  private def particleWeightArray (): Array[Double] = {
+    var weights = Array.fill(particles.length)(0.0)
+    for (i <- 0 to particles.length-1) weights(i) = particles(i).weight
+    weights
   }
 }
 
