@@ -33,38 +33,48 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
    * lies below a certain threshold, we resample the topics
    */
   def ingestDoc(doc: String): Unit = {
-    // get all words in doc (remember to strip out whitelist
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
+    var topicForWords = Array.fill(Words.length){ -1 }
 
+    addToReservoir(words) // side-effects; must happen before processing word!
     (0 to Words.length-1).foreach{ i => processWord(i, Words) }
-    //addWordsToReservoir()
   }
   
-  /** Process the ith entry in `words` */
+  /** Process the ith entry in `words`; copied pretty much verbatim from
+   Algorithm 4 of Canini, et al "Online Inference of Topics..." */
   private def processWord (i: Int, words: Array[String]): Unit = {
     if (i == 0) {
       throw new RuntimeException("processWord is unable to proc the first word right now!")
-      //initializeParticle()
     }
     
     val currword = words(i)
-    // side-effects; must happen before particle updates!
-    addWordIfNotSeen(currword)
+    addWordIfNotSeen(currword) // side-effects; must be before particle updates!
     
-    particles.foreach { particle => particle.unnormalizedReweight(currword) }
+    particles.foreach { particle =>
+      particle.unnormalizedReweight(currword, currVocabSize) }
     particles.foreach { particle => particle.transition(currword,
 							currVocabSize) }
     normalizeWeights()
-    // get inverse 2-norm of weights, check against ESS
-    //if (Math.norm(pweights, 2) <= ess) rejuvenate()
+    
+    if (shouldRejuvenate()) rejuvenate()
   }
 
+  /** Gets inverse 2-norm of particle weights, check against ESS */
+  private def shouldRejuvenate (): Boolean = {
+    //(Math.norm(pweights, 2) <= ess) rejuvenate()
+    throw new RuntimeException("shouldRejuvenate not yet implemented!")
+  }
+
+  private def addToReservoir (doc: Array[String]): Boolean = {
+    throw new RuntimeException("addToReservoir not yet implemented!")
+  }
+  
   private def rejuvenate (): Unit =
     throw new RuntimeException("rejuvenate not implemented")
 
-  /** Adds `word` to the current vocab map; uses current currVocabSize as
-   the id, i.e., if `word` is the nth seen so far, then n happens to be ==
-   currVocabSize
+  /** Adds `word` to the current vocab map if not seen; uses current
+   currVocabSize as the id, i.e., if `word` is the nth seen so far, then n
+   happens to be == currVocabSize
    */
   private def addWordIfNotSeen (word: String): Unit = {
     if (!(vocabToId contains word)) {
