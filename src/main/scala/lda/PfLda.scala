@@ -63,8 +63,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   /** Gets inverse 2-norm of particle weights, check against ESS */
   private def shouldRejuvenate (): Boolean = {
-    //(Math.norm(pweights, 2) <= ess) rejuvenate()
-    throw new RuntimeException("shouldRejuvenate not yet implemented!")
+    val weights = particleWeightArray()
+    Math.norm(weights, 2) <= ess
   }
 
   private def addToReservoir (doc: Array[String]): Boolean = {
