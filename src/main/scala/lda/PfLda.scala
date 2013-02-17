@@ -59,7 +59,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   /** Gets inverse 2-norm of particle weights, check against ESS */
   private def shouldRejuvenate (): Boolean = {
     val weights = particleWeightArray()
-    Math.norm(weights, 2) <= ess
+    val statistic = 1/math.pow(Math.norm(weights, 2), 2) 
+    statistic <= ess
   }
 
   private def addToReservoir (doc: Array[String]): Unit = {
