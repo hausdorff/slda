@@ -89,10 +89,13 @@ class Particle (val topics: Int, val initialWeight: Double,
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
 
-  /** Generates an unnormalized weight for the particle; returns new wgt */
-  def unnormalizedReweight (word: String): Double =
-    // \omega_i^{(p)} = \omega_{i-1}^{(p)} P(w_i | z_{i-1}^{(p)}, w_{i-1})
-    throw new RuntimeException("unnormalizedReweight not implemented")
+  /** Generates an unnormalized weight for the particle; returns new wgt. NOTE:
+   side-effects on the particle's weight as well! */
+  def unnormalizedReweight (word: String, w: Int): Double = {
+    val prior = unnormalizedPrior(word, w)
+    weight = weight * prior
+    weight
+  }
 
   /** "Transitions" particle to next state by sampling topic for `word`,
    which is our new observation. w is the *current* size of the vocabulary;
@@ -103,6 +106,15 @@ class Particle (val topics: Int, val initialWeight: Double,
     docVect.update(word, sampledTopic)
     globalVect.update(word, sampledTopic)
     sampledTopic
+  }
+
+  /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1}); specifically,
+   we note that this probability is proportional to P(w_i|z_{i-1}^{(p)})
+   P(z_{i-1}^{(p)}|d_i). */
+  private def unnormalizedPrior (word: String, w: Int): Double = {
+    var prOfWord = 0.0
+    (0 to topics-1).foreach { t => prOfWord += updateEqn(word, t, w) }
+    prOfWord
   }
 
   /** Generates the normalized posterior distribution P(z_j|Z_{i-1}, w_i);
