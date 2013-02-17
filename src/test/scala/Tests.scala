@@ -53,7 +53,7 @@ class GibbsUtilTests extends FunSuite {
 }
 
 class StatsTests extends FunSuite {
-  test("normalize") {
+  test("normalizeAndMakeCdf") {
     val arr0 = Array[Double]()
     val arr1 = Array[Double](3)
     val arr2 = Array[Double](0.2)
@@ -62,28 +62,28 @@ class StatsTests extends FunSuite {
     val arr5 = Array[Double](1, 1)
     val arr6 = Array[Double](2, 1)
     
-    assert(Arrays.equals(Stats.normalize(arr0), Array[Double]()),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr0), Array[Double]()),
 	   "array should be empty")
-    assert(Arrays.equals(Stats.normalize(arr1), Array[Double](1)),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr1), Array[Double](1)),
 	   "array should be unit array")
-    assert(Arrays.equals(Stats.normalize(arr2), Array[Double](1)),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr2), Array[Double](1)),
 	   "array should be unit array")
-    assert(Arrays.equals(Stats.normalize(arr3),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr3),
 			 Array(0.25, 0.5, 0.75, 1.0)),
 	 "elements are equiprobable")
-    assert(Arrays.equals(Stats.normalize(arr4),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr4),
 			 Array(1.0/3.0, 2.0/3.0, 1)),
 	   "elements are equiprobable")
-    assert(Arrays.equals(Stats.normalize(arr5), Array(0.5, 1)),
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr5), Array(0.5, 1)),
 	   "elements are equiprobable")
-    assert(Arrays.equals(Stats.normalize(arr6), Array(2.0/3.0, 1)))
+    assert(Arrays.equals(Stats.normalizeAndMakeCdf(arr6), Array(2.0/3.0, 1)))
   }
 
   test("sampleCategorical") {
-    assert(Stats.sampleCategorical(Stats.normalize(Array(1))) == 0)
+    assert(Stats.sampleCategorical(Stats.normalizeAndMakeCdf(Array(1))) == 0)
     
     val arr1 = Array[Double](2, 1)
-    val cdf1 = Stats.normalize(arr1)
+    val cdf1 = Stats.normalizeAndMakeCdf(arr1)
     val res1 = Helpers.samplingExpt(cdf1)
     assert(res1 < 0.69 && res1 > 0.64,
 	   "statistical test failed with value " + res1 +
@@ -91,7 +91,7 @@ class StatsTests extends FunSuite {
 	   "chance or it could be a real issue.")
 
     val arr2 = Array[Double](1,2,1)
-    val cdf2 = Stats.normalize(arr2)
+    val cdf2 = Stats.normalizeAndMakeCdf(arr2)
     val res2 = Helpers.samplingExpt(cdf2)
     assert(res2 < 0.28 && res2 > 0.22,
 	   "statistical test failed with value " + res2 +
