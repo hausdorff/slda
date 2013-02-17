@@ -157,7 +157,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     (globalVect.numTimesTopicAssignedTotal(topic) + w * beta)
 
     val docUpdate = (docVect.numTimesTopicOccursInDoc(topic) + alpha) /
-    (docVect.numWordsInDoc)
+    (docVect.numWordsInDoc + topics * alpha)
     globalUpdate * docUpdate
   }
 }
