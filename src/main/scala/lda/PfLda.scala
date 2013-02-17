@@ -36,7 +36,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
     var topicForWords = Array.fill(Words.length){ -1 }
 
-    addToReservoir(words) // side-effects; must happen before processing word!
+    addToReservoir(Words) // side-effects; must happen before processing word!
     (0 to Words.length-1).foreach{ i => processWord(i, Words) }
   }
   
