@@ -67,8 +67,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     Math.norm(weights, 2) <= ess
   }
 
-  private def addToReservoir (doc: Array[String]): Boolean = {
-    throw new RuntimeException("addToReservoir not yet implemented!")
+  private def addToReservoir (doc: Array[String]): Unit = {
+    rejuvSeq.add(doc)
   }
   
   private def rejuvenate (): Unit =
