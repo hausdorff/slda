@@ -5,9 +5,22 @@ import scala.util.{ Random => Random }
 
 object Stats {
   val sampler = new Random()
-  
-  /** Normalizes argument by side-effect; good for low-mem situations */
+
   def normalize (arr: Array[Double]): Array[Double] = {
+    arr.length match {
+      case 0 => arr
+      case 1 => { arr(0) = 1; arr }
+      case _ => {
+	val sum = arr.reduceLeft(_+_)
+	(0 to arr.length-1).foreach { i => arr(i) = arr(i) / sum }
+	arr
+      }
+    }
+  }
+  
+  /** Normalizes array of Double and makes it into a CDF; does this by
+   side-effect, so it's good for low-mem situations */
+  def normalizeAndMakeCdf (arr: Array[Double]): Array[Double] = {
     // WARNING SIDE EFFECTS ON `arr`
     @tailrec
     def loop (i: Int, sum: Double, acc: Array[Double]): Array[Double] =
@@ -22,7 +35,7 @@ object Stats {
       }
     arr.length match {
       case 0 => arr
-      case 1 => Array(1)
+      case 1 => { arr(0) = 1; arr }
       case _ => {
 	val sum = arr.reduceLeft(_+_)
 	arr(0) = arr(0) / sum
