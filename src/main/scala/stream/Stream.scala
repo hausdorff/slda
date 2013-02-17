@@ -65,6 +65,7 @@ AssociativeStreamSampler[T] () {
       // IMPORTANT: `nextInt()` not inclusive, so the `+1` is required
       slotToReplace = randombits.nextInt(currIdx+1)
       if (slotToReplace < k) sample(slotToReplace) = item
+      else slotToReplace = -1
     }
       else sample(currIdx) = item
     
