@@ -141,7 +141,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     var unnormalizedCdf = Array.fill(topics)(0.0)
     (0 to topics-1).foreach { i =>
       unnormalizedCdf(i) = updateEqn(word, i, w) }
-    Stats.normalize(unnormalizedCdf)
+    Stats.normalizeAndMakeCdf(unnormalizedCdf)
   }
 
   /** Applies the o-LDA update equation from "Online Inference of Topics..."

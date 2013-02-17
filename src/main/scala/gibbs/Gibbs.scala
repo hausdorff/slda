@@ -153,7 +153,7 @@ abstract class Gibbs (val docs: Array[String], val T: Int,
     loop(0, T, topicDistr)
     //println("topicDistr " + topicDistr.deep.mkString(" "))
 
-    Stats.sampleCategorical(Stats.normalize(topicDistr))
+    Stats.sampleCategorical(Stats.normalizeAndMakeCdf(topicDistr))
   }
   
   /** Resamples one complete assignment for the corpus
