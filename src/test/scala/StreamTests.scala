@@ -8,6 +8,19 @@ import org.scalatest.FunSuite
 
 
 class Stream extends FunSuite {
+  /** feed it a function that throws an exception when called, and we will
+   check to see that it does indeed */
+  def assertExceptionCaught [T](func: () => T): Unit = {
+    var exceptionCaught = false
+    try {
+      func()
+    }
+    catch {
+      case e: Exception => exceptionCaught = true
+    }
+    assert(exceptionCaught)
+  }
+  
   test("Test reservoir sampler") {
     val r = new Random()
     
@@ -47,5 +60,17 @@ class Stream extends FunSuite {
     println(hetero)
     assert(hetero/n < targetlowerbound || hetero/n > targetupperbound,
 	   "reservoir sample failed statistical test!")
+
+    var test2 = new ReservoirSampler[Int](3)
+    val target2 = Array(0,0,0)
+    test2.addAll(Array())
+    assert(test2.size == 0)
+    assert(test2.getSampleSet.deep == target2.deep)
+    assertExceptionCaught{ () => test2(0) }
+    assertExceptionCaught{ () => test2(1) }
+    val target3 = 1
+    test2.add(target3)
+    assert(test2(0) == target3)
+    assertExceptionCaught{ () => test2(1) }
   }
 }
