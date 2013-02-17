@@ -67,7 +67,10 @@ AssociativeStreamSampler[T] () {
       if (slotToReplace < k) sample(slotToReplace) = item
       else slotToReplace = -1
     }
-      else sample(currIdx) = item
+      else {
+	sample(currIdx) = item
+	slotToReplace = currIdx
+      }
     
     currIdx += 1
     slotToReplace
