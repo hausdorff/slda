@@ -51,16 +51,25 @@ AssociativeStreamSampler[T] () {
   var currIdx = 0
   var randombits = new Random()
 
+  /** Add returns a ReservoirSampler so we can chain `add` calls together */
   def add (item: T): ReservoirSampler[T] = {
+    addItem(item)
+    this
+  }
+
+  /** Add returns index of its place in reservoir, returns -1 if we did not
+   place it in the reservoir. */
+  def addItem (item: T): Int = {
+    var slotToReplace = -1
     if (currIdx >= k) {
       // IMPORTANT: `nextInt()` not inclusive, so the `+1` is required
-      val randIdx = randombits.nextInt(currIdx+1)
-      if (randIdx < k) sample(randIdx) = item
+      slotToReplace = randombits.nextInt(currIdx+1)
+      if (slotToReplace < k) sample(slotToReplace) = item
     }
-    else sample(currIdx) = item
+      else sample(currIdx) = item
     
     currIdx += 1
-    this
+    slotToReplace
   }
 
   def addAll (items: Array[T]): ReservoirSampler[T] = {
