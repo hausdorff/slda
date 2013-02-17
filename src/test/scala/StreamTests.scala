@@ -46,6 +46,16 @@ class Stream extends FunSuite {
     println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
     println(randomTest2(4,150).getSampleSet().deep.mkString(" "))
   }
+
+  test("make sure some of the time, elements get rejected from sample") {
+    var sampler = new ReservoirSampler[Int](1)
+    var count = 0
+    (0 to 10000).foreach { i =>
+      var sampler = new ReservoirSampler[Int](1)
+      sampler.addItem(1)
+      if (sampler.addItem(1) == -1) count += 1 }
+    assert(count < 6000 && count > 4000, "sampler failed a statistical test")
+  }
   
   test("Test reservoir sampler") {
     val r = new Random()
