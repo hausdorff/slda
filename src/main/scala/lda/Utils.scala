@@ -34,10 +34,6 @@ object Stats {
   /** Samples from simple categorical distribution; takes a normalized
    probability measure and returns a randomly-sampled index */
   def sampleCategorical (cdf: Array[Double]): Int = {
-    if (cdf.length == 0) throw new RuntimeException(
-      "can't sample form empty cdf")
-    else if (cdf.length == 1) return 0
-    
     val r = sampler.nextDouble()
     @tailrec
     def loop (currIdx: Int): Int =
