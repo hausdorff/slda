@@ -74,7 +74,8 @@ AssociativeStreamSampler[T] () {
   }
 
   /** IMPORTANT: if we've seen < k elements, then the array beyond what was
-   explicitly populated will be GARBAGE. DO NOT use in place of `apply()`! */
+   explicitly populated will be GARBAGE. DO NOT use in place of `apply()`!
+   TODO: Fix the above issue */
   def getSampleSet () = sample
 
   /** Number of elemtents in reservoir */
