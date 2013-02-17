@@ -176,32 +176,3 @@ MappingStreamSampler[T] () {
   def getSampleSet (): Map[T, Int] = sample
   def size (): Int = sample.size
 }
-
-/** Simple TEMPORARY tests used for dev purposes */
-object simpletests {
-  val r = new Random()
-  
-  def randomTest (setSz: Int, lstSz: Int): AssociativeStreamSampler[Int] = {
-    def loop (i: Int, accu: AssociativeStreamSampler[Int]):
-    AssociativeStreamSampler[Int] = {
-      if (i == lstSz) accu
-      else {
-	accu.add(r.nextInt(9))
-	loop(i+1, accu)
-      }
-    }
-    var rs = new ReservoirSampler[Int](setSz)
-    loop(0, rs)
-  }
-  
-  def main (args: Array[String]) {
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-    println(randomTest(5, 15).getSampleSet().deep.mkString(" "))
-  }
-}
