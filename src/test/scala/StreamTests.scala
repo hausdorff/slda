@@ -62,7 +62,7 @@ class Stream extends FunSuite {
 	   "reservoir sample failed statistical test!")
 
     var test2 = new ReservoirSampler[Int](3)
-    val target2 = Array(0,0,0)
+    val target2 = Array[Int]()
     test2.addAll(Array())
     assert(test2.size == 0)
     assert(test2.getSampleSet.deep == target2.deep)
@@ -72,5 +72,22 @@ class Stream extends FunSuite {
     test2.add(target3)
     assert(test2(0) == target3)
     assertExceptionCaught{ () => test2(1) }
+
+    var test3 = new ReservoirSampler[Int](3)
+    assert(test3.size == 0)
+    test3.add(1)
+    assert(test3.size == 1)
+    val target4 = Array[Int](1)
+    assert(test3.getSampleSet.deep == target4.deep)
+    test3.add(2)
+    assert(test3.size == 2)
+    val target5 = Array[Int](1,2)
+    assert(test3.getSampleSet.deep == target5.deep)
+    val target6 = Array[Int](1,2,3)
+    test3.add(3)
+    assert(test3.size == 3)
+    assert(test3.getSampleSet.deep == target6.deep)
+    test3.add(4)
+    assert(test3.size == 3)
   }
 }
