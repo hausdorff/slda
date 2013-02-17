@@ -30,8 +30,7 @@ class PfLda extends FunSuite {
     var targetWeights = Array.fill(numParticles)(0.0)
     (0 to numParticles-1).foreach { i =>
       targetWeights(i) = pflda.particles(i).weight }
-    println(targetWeights.deep.mkString(" "))
-    assert(targetWeights.reduceLeft(_+_) == 1)
+    assert(math.abs(targetWeights.reduceLeft(_+_)-1) <= 0.1)
   }
   
   /*
