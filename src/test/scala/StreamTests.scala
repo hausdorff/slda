@@ -43,7 +43,7 @@ class Stream extends FunSuite {
     val target1 = Array[Int](1,2,3)
     println(test1.getSampleSet().mkString(" "))
     assert(test1.getSampleSet().deep == target1.deep)
-    assert(test1.size == 3)
+    assert(test1.occupied == 3)
     assert(test1(0) == 1)
     assert(test1(1) == 2)
     assert(test1(2) == 3)
@@ -64,7 +64,7 @@ class Stream extends FunSuite {
     var test2 = new ReservoirSampler[Int](3)
     val target2 = Array[Int]()
     test2.addAll(Array())
-    assert(test2.size == 0)
+    assert(test2.occupied == 0)
     assert(test2.getSampleSet.deep == target2.deep)
     assertExceptionCaught{ () => test2(0) }
     assertExceptionCaught{ () => test2(1) }
@@ -74,20 +74,20 @@ class Stream extends FunSuite {
     assertExceptionCaught{ () => test2(1) }
 
     var test3 = new ReservoirSampler[Int](3)
-    assert(test3.size == 0)
+    assert(test3.occupied == 0)
     test3.add(1)
-    assert(test3.size == 1)
+    assert(test3.occupied == 1)
     val target4 = Array[Int](1)
     assert(test3.getSampleSet.deep == target4.deep)
     test3.add(2)
-    assert(test3.size == 2)
+    assert(test3.occupied == 2)
     val target5 = Array[Int](1,2)
     assert(test3.getSampleSet.deep == target5.deep)
     val target6 = Array[Int](1,2,3)
     test3.add(3)
-    assert(test3.size == 3)
+    assert(test3.occupied == 3)
     assert(test3.getSampleSet.deep == target6.deep)
     test3.add(4)
-    assert(test3.size == 3)
+    assert(test3.occupied == 3)
   }
 }

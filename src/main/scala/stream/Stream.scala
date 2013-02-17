@@ -18,7 +18,8 @@ import scala.util.{ Random => Random }
 abstract class AssociativeStreamSampler[T] () {
   def add (item: T): AssociativeStreamSampler[T]
   def addAll (items: Array[T]): AssociativeStreamSampler[T]
-  def size (): Int
+  def capacity (): Int // total number of slots availble in sampler
+  def occupied (): Int // total number of slots occupied in sampler
   def apply (i: Int): T
   def getSampleSet (): Array[T]
 }
@@ -31,7 +32,8 @@ abstract class AssociativeStreamSampler[T] () {
 abstract class MappingStreamSampler[T] () {
   def add (item: T): MappingStreamSampler[T]
   def addAll (items: Array[T]): MappingStreamSampler[T]
-  def size (): Int
+  def capacity (): Int // total number of slots availble in sampler
+  def occupied (): Int // total number of slots occupied in sampler
   def apply (item: T): Int
   def getSampleSet (): Map[T, Int]
 }
@@ -84,9 +86,12 @@ AssociativeStreamSampler[T] () {
     else sample
   }
 
+  /** Capacity of sampler, ie, maximum number of slots available total */
+  def capacity () = k
+
   /** Number of elemtents in reservoir */
-  def size () =
-    if (currIdx >=k) k
+  def occupied () =
+    if (currIdx >= k) k
     else currIdx
 }
 
@@ -135,7 +140,8 @@ MappingStreamSampler[T] () {
   
   def getSampleSet (): Map[T, Int] = sample
   
-  def size (): Int = sample.size
+  def capacity (): Int = k
+  def occupied (): Int = sample.size
 }
 
 /** Implements the SpaceSaving algorithm for the heavy hitters problem.
@@ -181,5 +187,6 @@ MappingStreamSampler[T] () {
     else 0
   
   def getSampleSet (): Map[T, Int] = sample
-  def size (): Int = sample.size
+  def capacity (): Int = k
+  def occupied (): Int = sample.size
 }

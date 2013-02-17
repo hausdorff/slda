@@ -24,7 +24,7 @@ class PfLda extends FunSuite {
     
     // Test globals roughly look ok
     assert(pflda.currVocabSize == 5)
-    assert(pflda.rejuvSeq.size == 3)
+    assert(pflda.rejuvSeq.occupied == 3)
     assert(pflda.particles.size == 5)
 
     var targetWeights = Array.fill(numParticles)(0.0)
