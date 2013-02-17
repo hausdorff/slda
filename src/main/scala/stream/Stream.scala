@@ -6,9 +6,10 @@
 package stream
 
 import scala.annotation.tailrec
-
 import scala.collection.mutable.Map
 import scala.util.{ Random => Random }
+
+import globals.Constants
 
 /** Associative stream samplers are backed by a regular associative array,
  * meaning their elements are not key-addressable. Reservoir sampling, for
@@ -57,15 +58,15 @@ AssociativeStreamSampler[T] () {
     this
   }
 
-  /** Add returns index of its place in reservoir, returns -1 if we did not
-   place it in the reservoir. */
+  /** Add returns index of its place in reservoir, returns
+   `DidNotAddToSampler` if we did not place it in the reservoir. */
   def addItem (item: T): Int = {
-    var slotToReplace = -1
+    var slotToReplace = Constants.DidNotAddToSampler
     if (currIdx >= k) {
       // IMPORTANT: `nextInt()` not inclusive, so the `+1` is required
       slotToReplace = randombits.nextInt(currIdx+1)
       if (slotToReplace < k) sample(slotToReplace) = item
-      else slotToReplace = -1
+      else slotToReplace = Constants.DidNotAddToSampler
     }
       else {
 	sample(currIdx) = item
