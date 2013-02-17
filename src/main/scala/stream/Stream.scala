@@ -73,10 +73,16 @@ AssociativeStreamSampler[T] () {
     else sample(i)
   }
 
-  /** IMPORTANT: if we've seen < k elements, then the array beyond what was
-   explicitly populated will be GARBAGE. DO NOT use in place of `apply()`!
-   TODO: Fix the above issue */
-  def getSampleSet () = sample
+  /** Output an array with all the elements in the sample; ie, if our sample
+   has < k elements in it, we only output the elements we have */
+  def getSampleSet (): Array[T] = {
+    if (currIdx < k) {
+      var out = new Array[T](currIdx)
+      Array.copy(sample, 0, out, 0, currIdx)
+      return out
+    }
+    else sample
+  }
 
   /** Number of elemtents in reservoir */
   def size () =
