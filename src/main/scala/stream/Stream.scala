@@ -107,6 +107,8 @@ AssociativeStreamSampler[T] () {
   def occupied () =
     if (currIdx >= k) k
     else currIdx
+
+  override def toString(): String = getSampleSet.deep.mkString(" ")
 }
 
 /** Implements the Misra-Gries Frequent algorithm for the heavy hitters problem.
