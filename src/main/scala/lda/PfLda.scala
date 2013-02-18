@@ -39,19 +39,19 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
 
     val docId = newDocumentUpdate(Words) // happen before processing word!
-    (0 to Words.length-1).foreach{ i => processWord(i, Words) }
+    (0 to Words.length-1).foreach{ i => processWord(i, Words, docId) }
   }
   
   /** Process the ith entry in `words`; copied pretty much verbatim from
    Algorithm 4 of Canini, et al "Online Inference of Topics..." */
-  private def processWord (i: Int, words: Array[String]): Unit = {
+  private def processWord (i: Int, words: Array[String], docId: Int): Unit = {
     val currword = words(i)
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
     
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
-    particles.foreach { particle => particle.transition(currword,
-							currVocabSize) }
+    particles.foreach { particle =>
+      particle.transition(i, words, currVocabSize,docId) }
     normalizeWeights()
     
     if (shouldRejuvenate()) rejuvenate()
@@ -123,12 +123,22 @@ class Particle (val topics: Int, val initialWeight: Double,
 
   /** "Transitions" particle to next state by sampling topic for `word`,
    which is our new observation. w is the *current* size of the vocabulary;
-   returns that topic */
-  def transition (word: String, w: Int): Int = {
+   returns that topic
+   
+   Behind the scenes, this requires two updates: first, we must update the
+   global and document-specific update vectors, and then we must update the
+   topic assignments if this document happens to be in our reservoir. */
+  def transition (index: Int, words: Array[String], w: Int, docId: Int): Int = {
+    val word = words(index)
     val cdf = posterior(word, w)
     val sampledTopic = Stats.sampleCategorical(cdf)
-    docVect.update(word, sampledTopic)
     globalVect.update(word, sampledTopic)
+    currDocVect.update(word, sampledTopic)
+
+    if (docId != Constants.DidNotAddToSampler) {
+      val currAssignments = rejuvSeqAssignments(docId)
+      currAssignments(index) = sampledTopic
+    }
     sampledTopic
   }
 
