@@ -154,9 +154,9 @@ class Particle (val topics: Int, val initialWeight: Double,
   def copy (): Particle = {
     val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
 				      rejuvSeq)
-    copiedParticle.globalVect = globalVect.copy()
+    copiedParticle.globalVect = globalVect.copy
     copiedParticle.weight = weight
-    copiedParticle.currDocVect = currDocVect
+    copiedParticle.currDocVect = currDocVect.copy
     // copy rejuvSeqAssignments
     rejuvSeqAssignments.foreach
     { kv =>
