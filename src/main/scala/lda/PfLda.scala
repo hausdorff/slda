@@ -149,6 +149,25 @@ class Particle (val topics: Int, val initialWeight: Double,
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
   }
+  
+  /** Proper deep copy of the particle */
+  def copy (): Particle = {
+    val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
+				      rejuvSeq)
+    copiedParticle.globalVect = globalVect.copy()
+    copiedParticle.weight = weight
+    copiedParticle.currDocVect = currDocVect
+    // copy rejuvSeqAssignments
+    rejuvSeqAssignments.foreach
+    { kv =>
+      val copiedVal = new Array[Int](kv._2.length);
+     copiedParticle.rejuvSeqAssignments(kv._1) = copiedVal;
+     Array.copy(kv._2, 0, copiedVal, 0, kv._2.length) }
+    // copy rejuvSeqDocVects
+    rejuvSeqDocVects.foreach { kv =>
+      copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy() }
+    throw new RuntimeException("test Particle.copy!!")
+  }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1}); specifically,
    we note that this probability is proportional to P(w_i|z_{i-1}^{(p)})
@@ -186,7 +205,7 @@ class Particle (val topics: Int, val initialWeight: Double,
  equation of the particle filtered LDA implementation. */
 class DocumentUpdateVector (val topics: Int) {
   // in the paper this is called n^{(d_j)}_{z_j, i\j}
-  var timesTopicOccursInDoc = Array.fill(topics)(0)
+  var timesTopicOccursInDoc = Array.fill[Int](topics)(0)
   // in the paper this is called n^{(d_j)}_{., i\j}
   var wordsInDoc = 0
 
@@ -200,6 +219,15 @@ class DocumentUpdateVector (val topics: Int) {
     timesTopicOccursInDoc(topic) += 1
     wordsInDoc += 1
   }
+
+  /** proper deep copy of DocumentUpdateVector */
+  def copy (): DocumentUpdateVector = {
+    var copiedVect = new DocumentUpdateVector(topics)
+    Array.copy(timesTopicOccursInDoc, 0, copiedVect.timesTopicOccursInDoc, 0,
+	       topics)
+    copiedVect.wordsInDoc = wordsInDoc
+    copiedVect
+  }
 }
 
 /** Tracks update progress for the global iterative update equation of the
@@ -208,7 +236,7 @@ class GlobalUpdateVector (val topics: Int) {
   // in the paper, this is called n^{(w_j)}_{z_j,i\j}
   var timesWordAssignedTopic = HashMap[(String,Int),Int]()
   // in the paper, this is called n^{(.)}_{z_j, i\j}
-  var timesTopicAssignedTotal = Array.fill(topics)(0)
+  var timesTopicAssignedTotal = Array.fill[Int](topics)(0)
 
   def numTimesWordAssignedTopic (word: String, topic: Int): Int =
     if (timesWordAssignedTopic contains (word,topic))
@@ -224,5 +252,15 @@ class GlobalUpdateVector (val topics: Int) {
       timesWordAssignedTopic((word, topic)) += 1
     else timesWordAssignedTopic((word,topic)) = 1
     timesTopicAssignedTotal(topic) += 1
+  }
+
+  /** proper deep copy of DocumentUpdateVector */
+  def copy (): GlobalUpdateVector = {
+    val copiedVect = new GlobalUpdateVector(topics)
+    timesWordAssignedTopic.foreach { kv =>
+      copiedVect.timesWordAssignedTopic(kv._1) = kv._2 }
+    Array.copy(timesTopicAssignedTotal, 0, copiedVect.timesTopicAssignedTotal, 0,
+	       topics)
+    copiedVect
   }
 }
