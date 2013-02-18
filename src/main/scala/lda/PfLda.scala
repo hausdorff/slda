@@ -166,7 +166,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     // copy rejuvSeqDocVects
     rejuvSeqDocVects.foreach { kv =>
       copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy() }
-    throw new RuntimeException("test Particle.copy!!")
+    copiedParticle
   }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1}); specifically,
