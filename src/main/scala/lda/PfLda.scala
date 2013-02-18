@@ -13,7 +13,8 @@ import wrangle._
  * @param alpha Symmetric Dirichlet prior
  * @param beta Symmetric Dirichlet prior
  * @param smplSize Number docs in reservoir sample
- * @param rejuvSteps Number of steps to take before rejuvenating
+ * @param numParticles Number of particles to maintain
+ * @param ess Controls threshold for rejuvenation. Higher = more often.
  */
 class PfLda (val T: Int, val alpha: Double, val beta: Double,
 	     val smplSize: Int, val numParticles: Int, ess: Double) {
