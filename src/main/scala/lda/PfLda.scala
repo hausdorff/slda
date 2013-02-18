@@ -3,6 +3,7 @@ package lda
 import scala.collection.mutable.{ HashMap => HashMap }
 import scala.util.{ Random => Random }
 
+import globals.Constants
 import stream._
 import wrangle._
 
