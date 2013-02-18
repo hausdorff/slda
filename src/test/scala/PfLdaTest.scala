@@ -9,7 +9,7 @@ import scala.collection.{ Set => Set }
 import scala.util.{ Random => Random }
 
 
-class PfLda extends FunSuite {
+class PfLdaTests extends FunSuite {
   val r = new Random()
   def generateWord (vocabulary: Array[String], topic: Array[Double]) = {
     val wordIdx = Stats.sampleCategorical(topic)
