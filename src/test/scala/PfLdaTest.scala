@@ -18,18 +18,18 @@ class PfLdaTests extends FunSuite {
   
   def generateDoc (vocabulary: Array[String], doclength: Int,
 		   topic1: Array[Double], topic2: Array[Double],
-		   mixture: Array[Double]): Array[String] = {
+		   mixture: Array[Double]): String = {
     var doc = new Array[String](doclength)
     (0 to doclength-1).foreach
     { i => val currTopic = Stats.sampleCategorical(mixture)
      if (currTopic == 0) doc(i) = generateWord(vocabulary, topic1)
      else doc(i) = generateWord(vocabulary, topic2) }
-    doc
+    doc.deep.mkString(" ")
   }
 
   /** results in array of tuples containing the mixture (element 1) and the
    actual document (element 2) */
-  def generateCorpus (): Array[(Array[Double], Array[String])] = {
+  def generateCorpus (): Array[(Array[Double], String)] = {
     //(0 to 10).foreach{ i => println(r.nextInt(4)) }
     //(0 to 10).foreach{ i => println(r.nextDouble()) }
     val documents = 16
@@ -42,7 +42,7 @@ class PfLdaTests extends FunSuite {
     val topic2 = Array[Double](1.0/3, 1.0/3, 1.0/3, 0, 0, 0)
     val topic2Cdf = Stats.normalizeAndMakeCdf(topic2)
     
-    var corpus = new Array[(Array[Double], Array[String])](documents)
+    var corpus = new Array[(Array[Double], String)](documents)
     (0 to documents-1).foreach
     { i => val mixture = Array[Double](r.nextDouble(), 1)
      corpus(i) = (mixture,
