@@ -38,7 +38,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   def ingestDoc(doc: String): Unit = {
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
 
-    addToReservoir(Words) // side-effects; must happen before processing word!
+    val docId = newDocumentUpdate(Words) // happen before processing word!
     (0 to Words.length-1).foreach{ i => processWord(i, Words) }
   }
   
@@ -64,8 +64,10 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     statistic <= ess
   }
 
-  private def addToReservoir (doc: Array[String]): Unit = {
-    rejuvSeq.add(doc)
+  private def newDocumentUpdate (doc: Array[String]): Int = {
+    val index = rejuvSeq.addItem(doc)
+    particles.foreach { particle => particle.newDocumentUpdate(index, doc) }
+    index
   }
   
   private def rejuvenate (): Unit =
@@ -105,9 +107,11 @@ class Particle (val topics: Int, val initialWeight: Double,
   /* NOTE: `rejuvSeq` depends on the PfLda class to populate it with the
    documents that it will use for rejuvenation; it DEPENDS ON SIDE-EFFECTS to do
    its job. */
-  var docVect = new DocumentUpdateVector(topics)
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
+  var currDocVect = new DocumentUpdateVector(topics)
+  var rejuvSeqAssignments = HashMap[Int,Array[Int]]()
+  var rejuvSeqDocVects = HashMap[Int,DocumentUpdateVector]()
 
   /** Generates an unnormalized weight for the particle; returns new wgt. NOTE:
    side-effects on the particle's weight as well! */
@@ -126,6 +130,14 @@ class Particle (val topics: Int, val initialWeight: Double,
     docVect.update(word, sampledTopic)
     globalVect.update(word, sampledTopic)
     sampledTopic
+  }
+
+  def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
+    currDocVect = new DocumentUpdateVector(topics)
+    if (indexIntoSample != Constants.DidNotAddToSampler) {
+      rejuvSeqAssignments(indexIntoSample) = new Array[Int](doc.length)
+      rejuvSeqDocVects(indexIntoSample) = currDocVect
+    }
   }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1}); specifically,
@@ -154,13 +166,13 @@ class Particle (val topics: Int, val initialWeight: Double,
 			+ beta) /
     (globalVect.numTimesTopicAssignedTotal(topic) + w * beta)
 
-    val docUpdate = (docVect.numTimesTopicOccursInDoc(topic) + alpha) /
-    (docVect.numWordsInDoc + topics * alpha)
+    val docUpdate = (currDocVect.numTimesTopicOccursInDoc(topic) + alpha) /
+    (currDocVect.numWordsInDoc + topics * alpha)
     globalUpdate * docUpdate
   }
 }
 
-/** Tracks update progress for the document-specific iterative update
+/** Tracks update progress for the document-specific ITERATIVE update
  equation of the particle filtered LDA implementation. */
 class DocumentUpdateVector (val topics: Int) {
   // in the paper this is called n^{(d_j)}_{z_j, i\j}
