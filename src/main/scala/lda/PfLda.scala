@@ -70,8 +70,27 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     index
   }
   
-  private def rejuvenate (): Unit =
+  private def rejuvenate (): Unit = {
+    // resample the particles; 
+    particles = multinomialResample()
+    // pick rejuvenation sequence in the reservoir
+    // run MCMC on the particles, ie, for each particle:
+    //     sample z_j^(p) = P(z_j^{(p)} | z_{i\j}^{(p)}, w_i)
+    // set all weights to 1/P
     throw new RuntimeException("rejuvenate not implemented")
+  }
+
+  /** Creates an array of particles resampled proportional to the weights */
+  private def multinomialResample (): Array[Particle] = {
+    val weightsCdf = Stats.normalizeAndMakeCdf(particleWeightArray())
+    val resampledParticles = new Array[Particle](numParticles)
+    (0 to numParticles-1).foreach {
+      i =>
+	val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
+      resampledParticles(i) = particles(indexOfParticleToCopy).copy
+    }
+    resampledParticles
+  }
 
   /** Adds `word` to the current vocab map if not seen; uses current
    currVocabSize as the id, i.e., if `word` is the nth seen so far, then n
