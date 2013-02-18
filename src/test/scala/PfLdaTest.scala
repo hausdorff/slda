@@ -51,11 +51,27 @@ class PfLdaTests extends FunSuite {
     
     corpus
   }
+
+  def standardPfLda (): PfLda = {
+    val topics = 3
+    val alpha = 0.1
+    val beta = 0.1
+    val sampleSize = 5
+    val numParticles = 5
+    val ess = 30
+    var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
+			      ess)
+    pflda
+  }
   
   test("build test corpus") {
     val corpus = generateCorpus()
+    /*
     corpus.foreach{ item => println((item._1.deep.mkString(" "),
 				     item._2.deep.mkString(" "))) }
+				     */
+    val pflda = standardPfLda()
+    corpus.foreach { item => pflda.ingestDoc(item._2)}
   }
   
   /*
