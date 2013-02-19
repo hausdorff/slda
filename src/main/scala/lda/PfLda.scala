@@ -75,10 +75,25 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     // resample the particles; 
     particles = multinomialResample()
     // pick rejuvenation sequence in the reservoir
-    // run MCMC on the particles, ie, for each particle:
-    //     sample z_j^(p) = P(z_j^{(p)} | z_{i\j}^{(p)}, w_i)
-    // set all weights to 1/P
+    val wordIds = allWordIds()
     throw new RuntimeException("rejuvenate not implemented")
+  }
+
+  /** Array of wordIds; a word's id is a tuple (docId, wordIndex), where `docId`
+   tells us where in `rejuvSeq` our document is, and `wordIndex`, which tells us
+   where in that document our word is */
+  private def allWordIds (): Array[(Int,Int)] = {
+    val sample = rejuvSeq.getSampleSet
+    val wordsInSample = sample.foldLeft(0){ (acc, doc) => acc + doc.length }
+    var wordIds = new Array[(Int,Int)](wordsInSample)
+    var currIdx = 0
+    for (i <- 0 to sample.length-1) {
+      for (j <- 0 to sample(i).length-1) {
+	wordIds(currIdx) = (i,j)
+	currIdx += 1
+      }
+    }
+    wordIds
   }
 
   /** Creates an array of particles resampled proportional to the weights */
