@@ -59,7 +59,7 @@ class PfLdaTests extends FunSuite {
     val beta = 0.1
     val sampleSize = 16
     val numParticles = 5
-    val ess = 30
+    val ess = 20
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
 			      ess)
     pflda
@@ -78,7 +78,7 @@ class PfLdaTests extends FunSuite {
     //println(pflda.currVocabSize)
     //println(pflda.rejuvSeq)
     //corpus.foreach { item => pflda.ingestDoc(item._2)}
-    pflda.printParticles
+    //pflda.printParticles
   }
   
   /*
