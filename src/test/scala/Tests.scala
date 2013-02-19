@@ -53,6 +53,19 @@ class GibbsUtilTests extends FunSuite {
 }
 
 class StatsTests extends FunSuite {
+  test("sampleWithoutReplacement") {
+    val arr1 = Array(0,1,2,3,4,5,6,7,8,9)
+    val outcomes = new Array[Int](10)
+    (0 to 100000).foreach{
+      i => val sample = Stats.sampleWithoutReplacement(arr1, 2)
+      outcomes(sample(0)) += 1
+      outcomes(sample(1)) += 1
+    }
+    outcomes.foreach { o => assert(o > 19000 && o < 21000,
+				   "sampleWithoutReplacement failed " +
+				   "statistical test") }
+  }
+  
   test("normalizeAndMakeCdf") {
     val arr0 = Array[Double]()
     val arr1 = Array[Double](3)
