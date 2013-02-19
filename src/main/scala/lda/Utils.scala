@@ -3,8 +3,16 @@ package lda
 import scala.annotation.tailrec
 import scala.util.{ Random => Random }
 
+import stream.ReservoirSampler
+
 object Stats {
   val sampler = new Random()
+
+  def sampleWithoutReplacement [T:Manifest](a: Array[T], k: Int): Array[T] = {
+    val sample = new ReservoirSampler[T](k)
+    sample.addAll(a)
+    sample.getSampleSet
+  }
 
   def normalize (arr: Array[Double]): Array[Double] = {
     arr.length match {
