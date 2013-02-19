@@ -166,7 +166,7 @@ class Particle (val topics: Int, val initialWeight: Double,
    topic assignments if this document happens to be in our reservoir. */
   def transition (index: Int, words: Array[String], w: Int, docId: Int): Int = {
     val word = words(index)
-    val cdf = posterior(word, w)
+    val cdf = updatePosterior(word, w)
     val sampledTopic = Stats.sampleCategorical(cdf)
     globalVect.update(word, sampledTopic)
     currDocVect.update(word, sampledTopic)
@@ -216,7 +216,7 @@ class Particle (val topics: Int, val initialWeight: Double,
 
   /** Generates the normalized posterior distribution P(z_j|Z_{i-1}, w_i);
    w is the *current* size of the vocabulary */
-  private def posterior (word: String, w: Int): Array[Double] = {
+  private def updatePosterior (word: String, w: Int): Array[Double] = {
     var unnormalizedCdf = Array.fill(topics)(0.0)
     (0 to topics-1).foreach { i =>
       unnormalizedCdf(i) = updateEqn(word, i, w) }
