@@ -54,10 +54,10 @@ class PfLdaTests extends FunSuite {
   }
 
   def standardPfLda (): PfLda = {
-    val topics = 3
+    val topics = 2
     val alpha = 0.1
     val beta = 0.1
-    val sampleSize = 5
+    val sampleSize = 16
     val numParticles = 5
     val ess = 30
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
@@ -69,10 +69,16 @@ class PfLdaTests extends FunSuite {
     val corpus = generateCorpus()
     /*
     corpus.foreach{ item => println((item._1.deep.mkString(" "),
-				     item._2.deep.mkString(" "))) }
-				     */
+				     item._2.deep.mkString(" "))) } */
     val pflda = standardPfLda()
-    corpus.foreach { item => pflda.ingestDoc(item._2)}
+    pflda.ingestDoc(corpus(0)._2)
+    pflda.ingestDoc(corpus(1)._2)
+
+    //println(pflda.vocabToId.size)
+    //println(pflda.currVocabSize)
+    //println(pflda.rejuvSeq)
+    //corpus.foreach { item => pflda.ingestDoc(item._2)}
+    pflda.printParticles
   }
   
   /*
