@@ -119,6 +119,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     for (i <- 0 to particles.length-1) weights(i) = particles(i).weight
     weights
   }
+
+  def printParticles (): Unit = particles.foreach { p => println(p) }
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
@@ -218,6 +220,14 @@ class Particle (val topics: Int, val initialWeight: Double,
     val docUpdate = (currDocVect.numTimesTopicOccursInDoc(topic) + alpha) /
     (currDocVect.numWordsInDoc + topics * alpha)
     globalUpdate * docUpdate
+  }
+
+  override def toString (): String = {
+    var outstr = "Particle assignments:\n"
+    rejuvSeqAssignments.foreach {
+      kv => outstr += "\t" + kv._1 + " -> " + kv._2.deep.mkString(" ") + "\n"
+    }
+    outstr
   }
 }
 
