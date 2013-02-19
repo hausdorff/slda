@@ -48,7 +48,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   private def processWord (i: Int, words: Array[String], docId: Int): Unit = {
     val currword = words(i)
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
-    
+
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
     particles.foreach { particle =>
@@ -61,7 +61,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   /** Gets inverse 2-norm of particle weights, check against ESS */
   private def shouldRejuvenate (): Boolean = {
     val weights = particleWeightArray()
-    val statistic = 1/math.pow(Math.norm(weights, 2), 2) 
+    val statistic = 1/math.pow(Math.norm(weights, 2), 2)
     statistic <= ess
   }
 
