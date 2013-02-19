@@ -89,8 +89,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     var currIdx = 0
     for (i <- 0 to sample.length-1) {
       for (j <- 0 to sample(i).length-1) {
-	wordIds(currIdx) = (i,j)
-	currIdx += 1
+	wordIds(currIdx) = (i,j); currIdx += 1
       }
     }
     wordIds
