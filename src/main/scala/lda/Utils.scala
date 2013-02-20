@@ -73,4 +73,8 @@ object Math {
   def norm (vector: Array[Double], d: Int): Double = {
     math.pow(vector.reduceLeft{ (acc,n) => math.pow(n,d) + acc }, 1.0/d)
   }
+
+  def max [T <% Ordered[T]](a: T, b: T): T = List(a, b).max
+
+  def min [T <% Ordered[T]](a: T, b: T): T = List(a, b).min
 }

@@ -125,6 +125,30 @@ class MathTests extends FunSuite {
     assert(answer2 == target2, "norms don't match: " + target2 + " " +
 	   answer2)
   }
+  
+  test("max tests") {
+    assert(Math.max(0,0) == 0)
+    assert(Math.max(0,1) == 1)
+    assert(Math.max(1,0) == 1)
+    assert(Math.max(-1,0) == 0)
+    
+    assert(Math.max(0.0,0) == 0.0)
+    assert(Math.max(0.0,1) == 1)
+    assert(Math.max(0,1.0) == 1)
+    assert(Math.max(-1.0,0.0) == 0.0)
+  }
+
+  test("min tests") {
+    assert(Math.min(0,0) == 0)
+    assert(Math.min(0,1) == 0)
+    assert(Math.min(1,0) == 0)
+    assert(Math.min(-1,0) == -1)
+    
+    assert(Math.min(0.0,0) == 0.0)
+    assert(Math.min(0.0,1) == 0)
+    assert(Math.min(0,1.0) == 0)
+    assert(Math.min(-1.0,0.0) == -1.0)
+  }
 }
 
 class GibbsTest extends FunSuite {
