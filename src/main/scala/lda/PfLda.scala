@@ -17,7 +17,8 @@ import wrangle._
  * @param ess Controls threshold for rejuvenation. Higher = more often.
  */
 class PfLda (val T: Int, val alpha: Double, val beta: Double,
-	     val smplSize: Int, val numParticles: Int, ess: Double) {
+             val smplSize: Int, val numParticles: Int, ess: Double,
+             val rejuvBatchSize: Int, val rejuvMcmcSteps: Int) {
   val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
   var vocabToId = HashMap[String,Int]()
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
