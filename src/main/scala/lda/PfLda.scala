@@ -22,6 +22,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var vocabToId = HashMap[String,Int]()
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
+  var currWordIdx = 0
   
   var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
 							alpha, beta, rejuvSeq))
@@ -48,6 +49,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   private def processWord (i: Int, words: Array[String], docId: Int): Unit = {
     val currword = words(i)
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
+    currWordIdx += 1
 
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
@@ -91,6 +93,13 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       for (j <- 0 to sample(i).length-1) {
 	wordIds(currIdx) = (i,j); currIdx += 1
       }
+    }
+
+    // if our sample is bigger than the words seen
+    if (currIdx > currWordIdx) {
+      var smallerSet = new Array[(Int, Int)](currWordIdx)
+      Array.copy(wordIds, 0, smallerSet, 0, currWordIdx)
+      wordIds = smallerSet
     }
     wordIds
   }
