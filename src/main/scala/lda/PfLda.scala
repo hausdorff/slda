@@ -26,7 +26,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var currWordIdx = 0
   
   var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
-							alpha, beta, rejuvSeq))
+                                                        alpha, beta, rejuvSeq))
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -93,7 +93,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     var currIdx = 0
     for (i <- 0 to sample.length-1) {
       for (j <- 0 to sample(i).length-1) {
-	wordIds(currIdx) = (i,j); currIdx += 1
+        wordIds(currIdx) = (i,j); currIdx += 1
       }
     }
 
@@ -112,7 +112,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     val resampledParticles = new Array[Particle](numParticles)
     (0 to numParticles-1).foreach {
       i =>
-	val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
+        val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
       resampledParticles(i) = particles(indexOfParticleToCopy).copy
     }
     resampledParticles
@@ -149,8 +149,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
-		val alpha: Double, val beta: Double,
-		val rejuvSeq: ReservoirSampler[Array[String]]) {
+                val alpha: Double, val beta: Double,
+                val rejuvSeq: ReservoirSampler[Array[String]]) {
   /* NOTE: `rejuvSeq` depends on the PfLda class to populate it with the
    documents that it will use for rejuvenation; it DEPENDS ON SIDE-EFFECTS to do
    its job. */
@@ -200,7 +200,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   /** Proper deep copy of the particle */
   def copy (): Particle = {
     val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
-				      rejuvSeq)
+                                      rejuvSeq)
     copiedParticle.globalVect = globalVect.copy
     copiedParticle.weight = weight
     copiedParticle.currDocVect = currDocVect.copy
@@ -239,7 +239,7 @@ class Particle (val topics: Int, val initialWeight: Double,
    *current* size of the vocabulary */
   private def updateEqn (word: String, topic: Int, w: Int): Double = {
     val globalUpdate = (globalVect.numTimesWordAssignedTopic(word, topic)
-			+ beta) /
+                        + beta) /
     (globalVect.numTimesTopicAssignedTotal(topic) + w * beta)
 
     val docUpdate = (currDocVect.numTimesTopicOccursInDoc(topic) + alpha) /
@@ -279,7 +279,7 @@ class DocumentUpdateVector (val topics: Int) {
   def copy (): DocumentUpdateVector = {
     var copiedVect = new DocumentUpdateVector(topics)
     Array.copy(timesTopicOccursInDoc, 0, copiedVect.timesTopicOccursInDoc, 0,
-	       topics)
+               topics)
     copiedVect.wordsInDoc = wordsInDoc
     copiedVect
   }
@@ -315,7 +315,7 @@ class GlobalUpdateVector (val topics: Int) {
     timesWordAssignedTopic.foreach { kv =>
       copiedVect.timesWordAssignedTopic(kv._1) = kv._2 }
     Array.copy(timesTopicAssignedTotal, 0, copiedVect.timesTopicAssignedTotal, 0,
-	       topics)
+               topics)
     copiedVect
   }
 }
