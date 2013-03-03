@@ -23,8 +23,13 @@ class PfLdaTests extends FunSuite {
     var doc = new Array[String](doclength)
     (0 to doclength-1).foreach
     { i => val currTopic = Stats.sampleCategorical(mixture)
-     if (currTopic == 0) doc(i) = generateWord(vocabulary, topic1)
-     else doc(i) = generateWord(vocabulary, topic2) }
+     if (currTopic == 0) {
+       doc(i) = generateWord(vocabulary, topic1)
+     }
+     else {
+       doc(i) = generateWord(vocabulary, topic2)
+     }
+   }
     doc.deep.mkString(" ")
   }
 
@@ -60,24 +65,46 @@ class PfLdaTests extends FunSuite {
     val sampleSize = 16
     val numParticles = 5
     val ess = 20
-    var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
-			      ess)
+    val rejuvBatchSize = 128
+    val rejuvMcmcSteps = 32
+    var pflda = new lda.PfLda(topics, alpha, beta, sampleSize,
+			      numParticles, ess, rejuvBatchSize,
+			      rejuvMcmcSteps)
     pflda
   }
-  
+
   test("build test corpus") {
     val corpus = generateCorpus()
     /*
-    corpus.foreach{ item => println((item._1.deep.mkString(" "),
-				     item._2.deep.mkString(" "))) } */
+     corpus.foreach{ item => println((item._1.deep.mkString(" "),
+     item._2.deep.mkString(" "))) } */
     val pflda = standardPfLda()
-    pflda.ingestDoc(corpus(0)._2)
-    pflda.ingestDoc(corpus(1)._2)
+    //pflda.ingestDoc(corpus(0)._2)
+    //pflda.ingestDoc(corpus(1)._2)
 
     //println(pflda.vocabToId.size)
     //println(pflda.currVocabSize)
     //println(pflda.rejuvSeq)
-    //corpus.foreach { item => pflda.ingestDoc(item._2)}
+    var map = new Array[Int](corpus.length)
+    for (i <- 0 to corpus.length-1) {
+      print(i + " ")
+      map(i) = pflda.ingestDoc(corpus(i)._2)
+    }
+    for (i <- 0 to map.length-1) {
+      var sum:Double = 0
+      val mappedIdx = map(i)
+      println(corpus(i)._1.deep)
+      println(corpus(i)._2)
+      pflda.particles foreach {
+	p =>
+	  val s = p.rejuvSeqAssignments(mappedIdx).reduceLeft(_+_)
+	sum += s / 16.0
+	//println(p.rejuvSeqAssignments(mappedIdx).deep)
+      }
+      println(sum / 16.0)
+      println()
+    }
+    
     //pflda.printParticles
   }
   
