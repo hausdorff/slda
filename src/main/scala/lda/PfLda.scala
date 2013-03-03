@@ -37,11 +37,12 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
    * assignment from the posterior. Then if the 2norm of the weight vector
    * lies below a certain threshold, we resample the topics
    */
-  def ingestDoc(doc: String): Unit = {
+  def ingestDoc(doc: String): Int = {
     val Words = Text.bow(doc, (str: String) => Whitelist(str))
 
     val docId = newDocumentUpdate(Words) // happen before processing word!
     (0 to Words.length-1).foreach{ i => processWord(i, Words, docId) }
+    docId
   }
   
   /** Process the ith entry in `words`; copied pretty much verbatim from
