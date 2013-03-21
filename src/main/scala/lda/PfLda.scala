@@ -80,7 +80,9 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     particles = multinomialResample()
     // pick rejuvenation sequence in the reservoir
     val wordIds = allWordIds()
-    throw new RuntimeException("rejuvenate not implemented")
+    particles.foreach { p => p.rejuvenate(wordIds, rejuvBatchSize,
+                                          currVocabSize) }
+    particles.foreach { p => p.weight = 1.0 / numParticles }
   }
 
   /** Array of wordIds; a word's id is a tuple (docId, wordIndex), where `docId`
@@ -196,7 +198,26 @@ class Particle (val topics: Int, val initialWeight: Double,
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
   }
-  
+
+  /** Rejuvenates particle by MCMC; we currently repeat the update step
+   `batchSize` times. w is the *current* size of the vocabulary */
+  def rejuvenate (wordIds: Array[(Int,Int)], batchSize: Int, w: Int): Unit = {
+    val sample = Stats.sampleWithoutReplacement(wordIds, batchSize)
+    for (i <- 0 to batchSize-1)
+      sample.foreach { wordId => resampleRejuvSeqWord(wordId._1, wordId._2, w) }
+  }
+
+  /** Resamples a word in the rejuvenation sequence; w is *current* size of
+   vocabulary*/
+  def resampleRejuvSeqWord (docIdx: Int, wordIdx: Int, w: Int): Unit = {
+    val doc = rejuvSeq(docIdx)
+    val word = doc(wordIdx)
+    val cdf = incrementalPosterior(wordIdx, docIdx, w)
+    val sampledTopic = Stats.sampleCategorical(cdf)
+    
+    assignNewTopic(docIdx, wordIdx, sampledTopic)
+  }
+
   /** Proper deep copy of the particle */
   def copy (): Particle = {
     val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
@@ -214,6 +235,18 @@ class Particle (val topics: Int, val initialWeight: Double,
     rejuvSeqDocVects.foreach { kv =>
       copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy() }
     copiedParticle
+  }
+
+  private def assignNewTopic (docIdx: Int, wordIdx: Int, newTopic: Int): Unit = {
+    var docTopics = rejuvSeqAssignments(docIdx)
+    var docUpdateVect = rejuvSeqDocVects(docIdx)
+    val doc = rejuvSeq.getSampleSet()(docIdx)
+    val word = doc(wordIdx)
+    val oldTopic = docTopics(wordIdx)
+    // should use indices to decrement old topic counts?
+    globalVect.resampledUpdate(word, oldTopic, newTopic)
+    docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
+    docTopics(wordIdx) = newTopic
   }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1}); specifically,
@@ -234,6 +267,18 @@ class Particle (val topics: Int, val initialWeight: Double,
     Stats.normalizeAndMakeCdf(unnormalizedCdf)
   }
 
+  /** Generates normalized incremental update posterior approximation
+   distribution P(z_j|Z_{i\j}, w_i); w is *current* size of the vocabulary. This
+   normalized distribution is a distribution over all possible z_j in eqn 3 in
+   Canini et al "Online Inference of Topics ..." */
+  private def incrementalPosterior (wordIdx: Int, docId:Int,
+                                    w: Int): Array[Double] = {
+    var unnormalizedCdf = Array.fill(topics)(0.0)
+    (0 to topics-1)foreach { i =>
+      unnormalizedCdf(i) = incrementalEqn(wordIdx, docId, i, w) }
+    Stats.normalizeAndMakeCdf(unnormalizedCdf)
+  }
+
   /** Applies the o-LDA update equation from "Online Inference of Topics..."
    by Canini, Shi, Griffiths. The relevant equation is eqn (2). w is the
    *current* size of the vocabulary */
@@ -244,6 +289,35 @@ class Particle (val topics: Int, val initialWeight: Double,
 
     val docUpdate = (currDocVect.numTimesTopicOccursInDoc(topic) + alpha) /
     (currDocVect.numWordsInDoc + topics * alpha)
+    globalUpdate * docUpdate
+  }
+
+  /** For some word and some `topic`, calculates number proportional to
+   p(z_j|Z_{i\j}, W_i). this is given as eqn (3) in Canini et al "Online
+   Inference of Topics..." */
+  private def incrementalEqn (wordIdx: Int, docId: Int, topic: Int,
+                              w: Int): Double = {
+    // We want to count the number of times a topic has occurred EXCLUDING the
+    // current time it was assigned. This method just helps that goal.
+    def counterHelper (count: Int, targetTopic: Int): Int = {
+      if (targetTopic == topic) Math.max(count - 1, 0)
+      else count
+    }
+    val doc = rejuvSeq.getSampleSet()(docId)
+    val word = doc(wordIdx)
+    val docTopics = rejuvSeqAssignments(docId)
+    val priorTopic = docTopics(wordIdx)
+    val docVect = rejuvSeqDocVects(docId)
+    val globalUpdate =
+      (counterHelper(globalVect.numTimesWordAssignedTopic(word, topic),
+                     priorTopic) + beta) /
+    (counterHelper(globalVect.numTimesTopicAssignedTotal(topic),
+                   priorTopic) + w * beta)
+    
+    val docUpdate =
+      (counterHelper(docVect.numTimesTopicOccursInDoc(topic),
+                     priorTopic) + alpha) /
+    (Math.max(docVect.wordsInDoc - 1, 0) + topics * alpha)
     globalUpdate * docUpdate
   }
 
@@ -273,6 +347,11 @@ class DocumentUpdateVector (val topics: Int) {
   def update (word: String, topic: Int): Unit = {
     timesTopicOccursInDoc(topic) += 1
     wordsInDoc += 1
+  }
+  
+  def resampledUpdate (wordIdx: Int, oldTopic: Int, newTopic: Int): Unit = {
+    timesTopicOccursInDoc(oldTopic) -= 1
+    timesTopicOccursInDoc(newTopic) += 1
   }
 
   /** proper deep copy of DocumentUpdateVector */
@@ -307,6 +386,18 @@ class GlobalUpdateVector (val topics: Int) {
       timesWordAssignedTopic((word, topic)) += 1
     else timesWordAssignedTopic((word,topic)) = 1
     timesTopicAssignedTotal(topic) += 1
+  }
+
+  def resampledUpdate (word: String, oldTopic: Int, newTopic: Int): Unit = {
+    if (timesWordAssignedTopic((word, oldTopic)) == 1)
+      timesWordAssignedTopic.remove((word, oldTopic))
+    else timesWordAssignedTopic((word, oldTopic)) -= 1
+    if (timesWordAssignedTopic contains (word, newTopic))
+      timesWordAssignedTopic((word, newTopic)) += 1
+    else
+      timesWordAssignedTopic((word, newTopic)) = 1
+    timesTopicAssignedTotal(oldTopic) -= 1
+    timesTopicAssignedTotal(newTopic) += 1
   }
 
   /** proper deep copy of DocumentUpdateVector */
