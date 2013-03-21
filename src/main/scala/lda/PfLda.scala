@@ -15,6 +15,8 @@ import wrangle._
  * @param smplSize Number docs in reservoir sample
  * @param numParticles Number of particles to maintain
  * @param ess Controls threshold for rejuvenation. Higher = more often.
+ * @param rejuvBatchSize number of words to rejuv per rejuvenation step
+ * @param rejuvMcmcSteps number of steps to run rejuv MCMC before stopping
  */
 class PfLda (val T: Int, val alpha: Double, val beta: Double,
              val smplSize: Int, val numParticles: Int, ess: Double,
