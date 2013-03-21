@@ -28,8 +28,8 @@ object Io {
     def loop (i: Int, acc: Array[String]): Array[String] = {
       if (i >= fs.length) acc
       else {
-	acc(i) = fileToString(fs(i))
-	loop(i+1, acc)
+        acc(i) = fileToString(fs(i))
+        loop(i+1, acc)
       }
     }
     loop(0, new Array[String](fs.length))
@@ -78,9 +78,9 @@ object Text {
     (Array[String], Array[Int]) = {
       if (i == docs.length) (accuDocs, accuAssig)
       else {
-	val nextDocs = tokenize(docs(i), filter)
-	val nextAssig = Array.fill(nextDocs.length)(i)
-	loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
+        val nextDocs = tokenize(docs(i), filter)
+        val nextAssig = Array.fill(nextDocs.length)(i)
+        loop(i + 1, accuDocs ++ nextDocs, accuAssig ++ nextAssig)
       }
     }
     val initAccuDocs = tokenize(docs(0), filter)
@@ -102,12 +102,12 @@ object DataConsts {
   val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
   val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
   val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
-			      "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
+                              "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
   val REL_3_TRAIN_DOCS = List("talk.politics.misc", "talk.politics.guns",
-			      "talk.politics.mideast") map (s =>
-				TNG_TRAIN_DIR + s)
+                              "talk.politics.mideast") map (s =>
+                                TNG_TRAIN_DIR + s)
   val DIFF_3_TRAIN_DOCS = List("alt.atheism", "rec.sport.baseball",
-			       "sci.space") map (s => TNG_TRAIN_DIR + s)
+                               "sci.space") map (s => TNG_TRAIN_DIR + s)
 }
 
 /** Wrangles the 20 Newsgroups dataset

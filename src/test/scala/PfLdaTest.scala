@@ -18,8 +18,8 @@ class PfLdaTests extends FunSuite {
   }
   
   def generateDoc (vocabulary: Array[String], doclength: Int,
-		   topic1: Array[Double], topic2: Array[Double],
-		   mixture: Array[Double]): String = {
+                   topic1: Array[Double], topic2: Array[Double],
+                   mixture: Array[Double]): String = {
     var doc = new Array[String](doclength)
     (0 to doclength-1).foreach
     { i => val currTopic = Stats.sampleCategorical(mixture)
@@ -52,8 +52,8 @@ class PfLdaTests extends FunSuite {
     (0 to documents-1).foreach
     { i => val mixture = Array[Double](r.nextDouble(), 1)
      corpus(i) = (mixture,
-		  generateDoc(vocabulary, doclength, topic1, topic2,
-			      mixture)) }
+                  generateDoc(vocabulary, doclength, topic1, topic2,
+                              mixture)) }
     
     corpus
   }
@@ -68,8 +68,8 @@ class PfLdaTests extends FunSuite {
     val rejuvBatchSize = 128
     val rejuvMcmcSteps = 32
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize,
-			      numParticles, ess, rejuvBatchSize,
-			      rejuvMcmcSteps)
+                              numParticles, ess, rejuvBatchSize,
+                              rejuvMcmcSteps)
     pflda
   }
 
@@ -96,10 +96,10 @@ class PfLdaTests extends FunSuite {
       println(corpus(i)._1.deep)
       println(corpus(i)._2)
       pflda.particles foreach {
-	p =>
-	  val s = p.rejuvSeqAssignments(mappedIdx).reduceLeft(_+_)
-	sum += s / 16.0
-	//println(p.rejuvSeqAssignments(mappedIdx).deep)
+        p =>
+          val s = p.rejuvSeqAssignments(mappedIdx).reduceLeft(_+_)
+        sum += s / 16.0
+        //println(p.rejuvSeqAssignments(mappedIdx).deep)
       }
       println(sum / 16.0)
       println()
@@ -117,9 +117,9 @@ class PfLdaTests extends FunSuite {
     val numParticles = 5
     val ess = 1
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
-			      ess)
+                              ess)
     val corpus = Array("the cow is short", "I can't find my glasses",
-		       "walnuts are delicious")
+                       "walnuts are delicious")
     pflda.ingestDocs(corpus)
     
     // Test globals roughly look ok
@@ -150,9 +150,9 @@ class PfLdaTests extends FunSuite {
 class ParticleTests extends FunSuite {
   test("test copy mechanism") {
     var srcParticle = new Particle(3, 1.0/3, 0.1, 0.1,
-				   new ReservoirSampler(3))
+                                   new ReservoirSampler(3))
     val newItemIdx = srcParticle.rejuvSeq.add(Array("cows", "are",
-						    "delicious"))
+                                                    "delicious"))
     var dstParticle = srcParticle.copy()
     // make sure the rejuvseq gets pointed at the same place
     assert(srcParticle.rejuvSeq == dstParticle.rejuvSeq)
