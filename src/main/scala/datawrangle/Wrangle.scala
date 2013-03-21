@@ -103,17 +103,27 @@ object DataConsts {
   val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
   val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
                               "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
+  val SIM_3_CATS = 3
   val REL_3_TRAIN_DOCS = List("talk.politics.misc", "talk.politics.guns",
                               "talk.politics.mideast") map (s =>
                                 TNG_TRAIN_DIR + s)
+  val REL_3_CATS = 3
   val DIFF_3_TRAIN_DOCS = List("alt.atheism", "rec.sport.baseball",
                                "sci.space") map (s => TNG_TRAIN_DIR + s)
+  val DIFF_3_CATS = 3
 }
 
 /** Wrangles the 20 Newsgroups dataset
  */
 object TNG {
-  
+  // returns (corpus, stopwrds, # of categories)
+  def sim3 () = {
+    (Io.rawCorpus(wrangle.DataConsts.SIM_3_TRAIN_DOCS),
+     Text.stopWords(DataConsts.TNG_WHITELIST),
+     DataConsts.SIM_3_CATS)
+  }
+
+  /*
   def main (args: Array[String]) {
     val corpus = Io.rawCorpus(DataConsts.ALT_ATHEISM)
     println("Docs in corpus " + corpus.length)
@@ -133,4 +143,5 @@ object TNG {
 
     println(Io.files(DataConsts.TNG_TRAIN_DIR + "rec.sport.baseball").length)
   }
+  */
 }
