@@ -5,15 +5,13 @@ import scala.collection.mutable.{ HashMap => HashMap }
 import globals.Constants
 import stream._
 
-// Create underlying state space
-// change state space as necessary
-class ParticleSampler () {
+/** TODO: add comment explaining how this works */
+class AssignmentTree () {
   // maps particle #s to hashtable representing the particle
   //   each particle is a hashmap containing the following keys:
   //     i -> topic assignment
   //     "active" -> true or false
   // init: fill up particles into their slots
-  var particles = null;
 
   // looks up topic assignment i in particle p; recurses upwards until it finds
   // the value
