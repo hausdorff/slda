@@ -5,20 +5,62 @@ import scala.collection.mutable.{ HashMap => HashMap }
 import globals.Constants
 import stream._
 
-/** TODO: add comment explaining how this works */
-class AssignmentTree () {
-  // maps particle #s to hashtable representing the particle
-  //   each particle is a hashmap containing the following keys:
-  //     i -> topic assignment
-  //     "active" -> true or false
-  // init: fill up particles into their slots
+/** A memory- and time-efficient way to represent particles, as detailed in
+ section 4 of Canini Shi Griffiths */
+class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
+                     val numParticles: Int,
+                     var rejuvSeq: ReservoirSampler[Array[String]]) {
+  /* (1) generate particles, eg,
+   val p = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq) */
+  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
+                                                        alpha, beta, rejuvSeq))
 
-  // looks up topic assignment i in particle p; recurses upwards until it finds
-  // the value
-  def lookup (i: Int, p: Int): Int = { -1 }
+  def unnormalizedReweightAll (currword: String, currVocabSize: Int): Unit = {
+    particles.foreach { particle =>
+      particle.unnormalizedReweight(currword, currVocabSize) }
+  }
 
-  // set topic assignment i in particle p; always sets in table p
-  def set (i: Int, p: Int): Unit = { }
+  def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
+                     docId: Int): Unit = {
+    particles.foreach { particle =>
+      particle.transition(index, words, currVocabSize,docId) }
+  }
+
+  def newDocumentUpdateAll (indexIntoSample: Int, doc: Array[String]): Unit = {
+    particles.foreach { particle =>
+      particle.newDocumentUpdate(indexIntoSample, doc) }
+  }
+
+  def resample (unnormalizedWeights: Array[Double]): Unit = {
+    particles = multinomialResample(unnormalizedWeights)
+  }
+
+  def rejuvenateAll (wordIds: Array[(Int,Int)], batchSize: Int,
+                     currVocabSize: Int): Unit = {
+    particles.foreach { p => p.rejuvenate(wordIds, batchSize, currVocabSize) }
+  }
+
+  def uniformReweightAll (): Unit = {
+    particles.foreach { p => p.weight = 1.0 / numParticles }
+  }
+
+  def printParticles (): Unit = particles.foreach { p => println(p) }
+
+  /** TODO: DECIDE IF THIS IS NECESSARY */
+  def rejuvenate (): Unit = { }
+
+  /** Creates an array of particles resampled proportional to the weights */
+  private def multinomialResample (unnormalizedWeights: Array[Double]):
+  Array[Particle] = {
+    val weightsCdf = Stats.normalizeAndMakeCdf(unnormalizedWeights)
+    val resampledParticles = new Array[Particle](numParticles)
+    (0 to numParticles-1).foreach {
+      i =>
+        val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
+      resampledParticles(i) = particles(indexOfParticleToCopy).copy
+    }
+    resampledParticles
+  }
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
