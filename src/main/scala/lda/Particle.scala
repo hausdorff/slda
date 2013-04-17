@@ -16,6 +16,9 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
                                                         alpha, beta, rejuvSeq))
 
+  /** Reweights particles proportional to the probability they account for the
+   data. UNNORMALIZED. Does this for every particle. Corresponds to line 4 of
+   Algorithm 4 in Canini paper */
   def unnormalizedReweightAll (currword: String, currVocabSize: Int): Unit = {
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
@@ -29,17 +32,20 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     for (i <- 0 to numParticles-1) particles(i).weight = weights(i)
   }
 
+  /** Performs transition for every particle (see comment on particle method) */
   def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
                      docId: Int): Unit = {
     particles.foreach { particle =>
       particle.transition(index, words, currVocabSize,docId) }
   }
 
+  /** Performs update necessary for new document */
   def newDocumentUpdateAll (indexIntoSample: Int, doc: Array[String]): Unit = {
     particles.foreach { particle =>
       particle.newDocumentUpdate(indexIntoSample, doc) }
   }
 
+  /** Resamples particles proportional to their probability */
   def resample (unnormalizedWeights: Array[Double]): Unit = {
     particles = multinomialResample(unnormalizedWeights)
   }
@@ -51,6 +57,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     statistic <= ess
   }
 
+  /** Prepares to perform, and performs rejuvenation MCMC step */
   def rejuvenate (wordIds: Array[(Int,Int)], currVocabSize: Int): Unit = {
     val now = System.currentTimeMillis
     // resample the particles; 
@@ -62,6 +69,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     uniformReweightAll()
   }
 
+  /** performs rejuvenation MCMC step for every particle */
   def rejuvenateAll (wordIds: Array[(Int,Int)], batchSize: Int,
                      currVocabSize: Int): Unit = {
     particles.foreach { p => p.rejuvenate(wordIds, batchSize, currVocabSize) }
@@ -75,6 +83,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     weights
   }
 
+  /** Reweights all particles so that they're uniform */
   def uniformReweightAll (): Unit = {
     particles.foreach { p => p.weight = 1.0 / numParticles }
   }
