@@ -85,11 +85,14 @@ class PfLdaTests extends FunSuite {
     //println(pflda.vocabToId.size)
     //println(pflda.currVocabSize)
     //println(pflda.rejuvSeq)
+    // ingest documents, store a map of where they are in Reservoir Sampler
     var map = new Array[Int](corpus.length)
     for (i <- 0 to corpus.length-1) {
       print(i + " ")
       map(i) = pflda.ingestDoc(corpus(i)._2)
     }
+
+    // iterate through documents, output accuracy averaged over all particles
     for (i <- 0 to map.length-1) {
       var sum:Double = 0
       val mappedIdx = map(i)
