@@ -27,6 +27,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var currVocabSize = 0
   var currWordIdx = 0
 
+  //var particles = new ParticleStore(T, alpha, beta, numParticles, rejuvSeq)
   var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
                                                         alpha, beta, rejuvSeq))
 
@@ -55,8 +56,10 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
     currWordIdx += 1
 
+    //particles.unormalizedReweightAll(currword, currVocabSize)
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
+    //particles.transitionAll(i, words, currVocabSize, docId)
     particles.foreach { particle =>
       particle.transition(i, words, currVocabSize,docId) }
     normalizeWeights()
@@ -73,6 +76,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def newDocumentUpdate (doc: Array[String]): Int = {
     val index = rejuvSeq.addItem(doc)
+    //particles.newDocumentUpdateAll(index, doc)
     particles.foreach { particle => particle.newDocumentUpdate(index, doc) }
     index
   }
@@ -80,13 +84,16 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   private def rejuvenate (): Unit = {
     val now = System.currentTimeMillis
     // resample the particles; 
+    //particles.resample(particleWeightArray())
     particles = multinomialResample()
     // TODO: HACKY TIMING CODE, REMOVE LATER
     println("\t" + (System.currentTimeMillis - now))
     // pick rejuvenation sequence in the reservoir
     val wordIds = allWordIds()
+    //particles.rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
     particles.foreach { p => p.rejuvenate(wordIds, rejuvBatchSize,
                                           currVocabSize) }
+    //particles.uniformReweightAll()
     particles.foreach { p => p.weight = 1.0 / numParticles }
   }
 
