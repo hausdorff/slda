@@ -96,15 +96,15 @@ class PfLdaTests extends FunSuite {
       println("(money, nature)")
       println(corpus(i)._1.deep)
       println(corpus(i)._2)
-      pflda.particles foreach {
+      pflda.particles.particles foreach {
         p =>
           println(p.rejuvSeqAssignments(mappedIdx).deep)
           val s = p.rejuvSeqAssignments(mappedIdx).reduceLeft(_+_)
         sum += s / 16.0
         //println(p.rejuvSeqAssignments(mappedIdx).deep)
       }
-      println((1 - (sum / pflda.particles.length.toDouble)) + " " +
-              (sum / pflda.particles.length.toDouble))
+      println((1 - (sum / pflda.particles.particles.length.toDouble)) + " " +
+              (sum / pflda.particles.particles.length.toDouble))
       println("note that topic labels are determined by coinflip, so '1' " +
             " doesn't necessarily correspond to topic #1")
       println()

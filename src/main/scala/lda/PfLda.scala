@@ -27,9 +27,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var currVocabSize = 0
   var currWordIdx = 0
 
-  //var particles = new ParticleStore(T, alpha, beta, numParticles, rejuvSeq)
-  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
-                                                        alpha, beta, rejuvSeq))
+  var particles = new ParticleStore(T, alpha, beta, numParticles, rejuvSeq)
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -56,12 +54,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     addWordIfNotSeen(currword) // side-effects; must be before particle updates!
     currWordIdx += 1
 
-    //particles.unormalizedReweightAll(currword, currVocabSize)
-    particles.foreach { particle =>
-      particle.unnormalizedReweight(currword, currVocabSize) }
-    //particles.transitionAll(i, words, currVocabSize, docId)
-    particles.foreach { particle =>
-      particle.transition(i, words, currVocabSize,docId) }
+    particles.unnormalizedReweightAll(currword, currVocabSize)
+    particles.transitionAll(i, words, currVocabSize, docId)
     normalizeWeights()
     
     if (shouldRejuvenate()) rejuvenate()
@@ -76,25 +70,20 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def newDocumentUpdate (doc: Array[String]): Int = {
     val index = rejuvSeq.addItem(doc)
-    //particles.newDocumentUpdateAll(index, doc)
-    particles.foreach { particle => particle.newDocumentUpdate(index, doc) }
+    particles.newDocumentUpdateAll(index, doc)
     index
   }
   
   private def rejuvenate (): Unit = {
     val now = System.currentTimeMillis
     // resample the particles; 
-    //particles.resample(particleWeightArray())
-    particles = multinomialResample()
+    particles.resample(particleWeightArray())
     // TODO: HACKY TIMING CODE, REMOVE LATER
     println("\t" + (System.currentTimeMillis - now))
     // pick rejuvenation sequence in the reservoir
     val wordIds = allWordIds()
-    //particles.rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
-    particles.foreach { p => p.rejuvenate(wordIds, rejuvBatchSize,
-                                          currVocabSize) }
-    //particles.uniformReweightAll()
-    particles.foreach { p => p.weight = 1.0 / numParticles }
+    particles.rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
+    particles.uniformReweightAll()
   }
 
   /** Array of wordIds; a word's id is a tuple (docId, wordIndex), where `docId`
@@ -120,18 +109,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     wordIds
   }
 
-  /** Creates an array of particles resampled proportional to the weights */
-  private def multinomialResample (): Array[Particle] = {
-    val weightsCdf = Stats.normalizeAndMakeCdf(particleWeightArray())
-    val resampledParticles = new Array[Particle](numParticles)
-    (0 to numParticles-1).foreach {
-      i =>
-        val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
-      resampledParticles(i) = particles(indexOfParticleToCopy).copy
-    }
-    resampledParticles
-  }
-
   /** Adds `word` to the current vocab map if not seen; uses current
    currVocabSize as the id, i.e., if `word` is the nth seen so far, then n
    happens to be == currVocabSize
@@ -148,16 +125,14 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   private def normalizeWeights (): Unit = {
     var weights = particleWeightArray()
     Stats.normalize(weights)
-    for (i <- 0 to particles.length-1) particles(i).weight = weights(i)
+    for (i <- 0 to numParticles-1) particles.particles(i).weight = weights(i)
   }
 
   /** Helper method puts the weights of particles into an array, so that
    `particles(i) == weights(i)` */
   private def particleWeightArray (): Array[Double] = {
-    var weights = Array.fill(particles.length)(0.0)
-    for (i <- 0 to particles.length-1) weights(i) = particles(i).weight
+    var weights = Array.fill(numParticles)(0.0)
+    for (i <- 0 to numParticles-1) weights(i) = particles.particles(i).weight
     weights
   }
-
-  def printParticles (): Unit = particles.foreach { p => println(p) }
 }
