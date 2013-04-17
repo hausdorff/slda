@@ -116,8 +116,9 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
  * assignment we're looking for.
  */
 class AssignmentStore () {
-  var parents = HashMap[Int,Particle]()
-  var children = HashMap[Int,Particle]()
+  var particleMap = HashMap[Int,Particle]()
+  var parents = HashMap[Int,Int]()
+  var children = HashMap[Int,Int]()
 
   /** Gets a paticle's topic assignment at a specific wordIdx in a document.
    If we do not find wordIdx in docId, then we recurse up until we do. We should
@@ -133,7 +134,7 @@ class AssignmentStore () {
    no particle has copied it during the resampling step. If an entire subtree
    is inactive, then it can be deleted. If a node is inactive, but has active
    children, then it can be merged with the children.*/
-  def prune (): Unit { }
+  def prune (): Unit = { }
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
