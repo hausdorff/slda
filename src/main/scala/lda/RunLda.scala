@@ -27,7 +27,8 @@ object RunLda {
       val now = System.nanoTime
       //println("doc " + i + " / " + (corpus.length-1))
       model.ingestDoc(corpus(i))
-      //println(System.nanoTime - now)
+      // TODO: REMOVE HACKY TIMING CODE FOR BENCHMARKING IMPROVEMENTS
+      println(i + " " + (System.nanoTime - now))
     }
   }
 }

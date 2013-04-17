@@ -26,7 +26,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
   var currWordIdx = 0
-  
+
   var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
                                                         alpha, beta, rejuvSeq))
 
@@ -78,8 +78,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
   
   private def rejuvenate (): Unit = {
+    val now = System.currentTimeMillis
     // resample the particles; 
     particles = multinomialResample()
+    // TODO: HACKY TIMING CODE, REMOVE LATER
+    println("\t" + (System.currentTimeMillis - now))
     // pick rejuvenation sequence in the reservoir
     val wordIds = allWordIds()
     particles.foreach { p => p.rejuvenate(wordIds, rejuvBatchSize,
