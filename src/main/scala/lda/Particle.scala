@@ -104,6 +104,38 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   }
 }
 
+/** Directed tree allowing us to represent and copy particles in a way that is
+ * both memory efficient and time efficient. This is especially useful when we
+ * resample particles, which requires that we copy all the topic assignments.
+ *
+ * This is detailed in section 4 of the Canini paper. The idea is, there is high
+ * redundancy in the particles. We copy the particles during resampling, but
+ * initially all of the assignments will be the same. Thus, we need only create
+ * reference to a new particle and change its assignments as necessary. Thus,
+ * looking up a particle, we need only recurse up the parents until we find the
+ * assignment we're looking for.
+ */
+class AssignmentStore () {
+  var parents = HashMap[Int,Particle]()
+  var children = HashMap[Int,Particle]()
+
+  /** Gets a paticle's topic assignment at a specific wordIdx in a document.
+   If we do not find wordIdx in docId, then we recurse up until we do. We should
+   always find it at the root, and if we don't then something has gone wrong. */
+  def get (particleId: Int, docId: Int, wordIdx: Int): Int = { -1 }
+
+  /** Sets topic assignment for word at location wordIdx in document docId.
+   Additionally, the old value is inserted into the child particles to maintain
+   consistency. Unlike `get` the parents are NOT affected. */
+  def set (particleId: Int, docId: Int, wordIdx: Int): Unit = { }
+
+  /** Deletes or merges nodes that are "inactive." A node is inactive if it is
+   no particle has copied it during the resampling step. If an entire subtree
+   is inactive, then it can be deleted. If a node is inactive, but has active
+   children, then it can be merged with the children.*/
+  def prune (): Unit { }
+}
+
 class Particle (val topics: Int, val initialWeight: Double,
                 val alpha: Double, val beta: Double,
                 val rejuvSeq: ReservoirSampler[Array[String]]) {
