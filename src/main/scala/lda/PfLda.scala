@@ -59,8 +59,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     particles.transitionAll(i, words, currVocabSize, docId)
     particles.normalizeWeights()
     
-    if (particles.shouldRejuvenate()) particles.rejuvenate(allWordIds(),
-                                                           currVocabSize)
+    if (particles.shouldRejuvenate())
+      particles.rejuvenate(allWordIds(), currVocabSize)
   }
 
   private def newDocumentUpdate (doc: Array[String]): Int = {
