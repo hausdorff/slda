@@ -8,7 +8,8 @@ import stream._
 /** A memory- and time-efficient way to represent particles, as detailed in
  section 4 of Canini Shi Griffiths */
 class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
-                     val numParticles: Int,
+                     val numParticles: Int, val ess: Double,
+                     val rejuvBatchSize: Int,
                      var rejuvSeq: ReservoirSampler[Array[String]]) {
   /* (1) generate particles, eg,
    val p = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq) */
@@ -18,6 +19,14 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   def unnormalizedReweightAll (currword: String, currVocabSize: Int): Unit = {
     particles.foreach { particle =>
       particle.unnormalizedReweight(currword, currVocabSize) }
+  }
+
+  /** Takes weights of particles, normalizes them, writes them back; note:
+   SIDE-EFFECTS. */
+  def normalizeWeights (): Unit = {
+    var weights = particleWeightArray()
+    Stats.normalize(weights)
+    for (i <- 0 to numParticles-1) particles(i).weight = weights(i)
   }
 
   def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
@@ -35,9 +44,35 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     particles = multinomialResample(unnormalizedWeights)
   }
 
+  /** Gets inverse 2-norm of particle weights, check against ESS */
+  def shouldRejuvenate (): Boolean = {
+    val weights = particleWeightArray()
+    val statistic = 1/math.pow(Math.norm(weights, 2), 2)
+    statistic <= ess
+  }
+
+  def rejuvenate (wordIds: Array[(Int,Int)], currVocabSize: Int): Unit = {
+    val now = System.currentTimeMillis
+    // resample the particles; 
+    resample(particleWeightArray())
+    // TODO: HACKY TIMING CODE, REMOVE LATER
+    println("\t" + (System.currentTimeMillis - now))
+    // pick rejuvenation sequence in the reservoir
+    rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
+    uniformReweightAll()
+  }
+
   def rejuvenateAll (wordIds: Array[(Int,Int)], batchSize: Int,
                      currVocabSize: Int): Unit = {
     particles.foreach { p => p.rejuvenate(wordIds, batchSize, currVocabSize) }
+  }
+
+  /** Helper method puts the weights of particles into an array, so that
+   `particles(i) == weights(i)` */
+  def particleWeightArray (): Array[Double] = {
+    var weights = Array.fill(numParticles)(0.0)
+    for (i <- 0 to numParticles-1) weights(i) = particles(i).weight
+    weights
   }
 
   def uniformReweightAll (): Unit = {
@@ -45,9 +80,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   }
 
   def printParticles (): Unit = particles.foreach { p => println(p) }
-
-  /** TODO: DECIDE IF THIS IS NECESSARY */
-  def rejuvenate (): Unit = { }
 
   /** Creates an array of particles resampled proportional to the weights */
   private def multinomialResample (unnormalizedWeights: Array[Double]):

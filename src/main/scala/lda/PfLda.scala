@@ -27,7 +27,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var currVocabSize = 0
   var currWordIdx = 0
 
-  var particles = new ParticleStore(T, alpha, beta, numParticles, rejuvSeq)
+  var particles = new ParticleStore(T, alpha, beta, numParticles, ess,
+                                    rejuvBatchSize, rejuvSeq)
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -56,34 +57,16 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
     particles.unnormalizedReweightAll(currword, currVocabSize)
     particles.transitionAll(i, words, currVocabSize, docId)
-    normalizeWeights()
+    particles.normalizeWeights()
     
-    if (shouldRejuvenate()) rejuvenate()
-  }
-
-  /** Gets inverse 2-norm of particle weights, check against ESS */
-  private def shouldRejuvenate (): Boolean = {
-    val weights = particleWeightArray()
-    val statistic = 1/math.pow(Math.norm(weights, 2), 2)
-    statistic <= ess
+    if (particles.shouldRejuvenate()) particles.rejuvenate(allWordIds(),
+                                                           currVocabSize)
   }
 
   private def newDocumentUpdate (doc: Array[String]): Int = {
     val index = rejuvSeq.addItem(doc)
     particles.newDocumentUpdateAll(index, doc)
     index
-  }
-  
-  private def rejuvenate (): Unit = {
-    val now = System.currentTimeMillis
-    // resample the particles; 
-    particles.resample(particleWeightArray())
-    // TODO: HACKY TIMING CODE, REMOVE LATER
-    println("\t" + (System.currentTimeMillis - now))
-    // pick rejuvenation sequence in the reservoir
-    val wordIds = allWordIds()
-    particles.rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
-    particles.uniformReweightAll()
   }
 
   /** Array of wordIds; a word's id is a tuple (docId, wordIndex), where `docId`
@@ -118,21 +101,5 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       vocabToId(word) = currVocabSize
       currVocabSize += 1
     }
-  }
-
-  /** Takes weights of particles, normalizes them, writes them back; note:
-   SIDE-EFFECTS. */
-  private def normalizeWeights (): Unit = {
-    var weights = particleWeightArray()
-    Stats.normalize(weights)
-    for (i <- 0 to numParticles-1) particles.particles(i).weight = weights(i)
-  }
-
-  /** Helper method puts the weights of particles into an array, so that
-   `particles(i) == weights(i)` */
-  private def particleWeightArray (): Array[Double] = {
-    var weights = Array.fill(numParticles)(0.0)
-    for (i <- 0 to numParticles-1) weights(i) = particles.particles(i).weight
-    weights
   }
 }
