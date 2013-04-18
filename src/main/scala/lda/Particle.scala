@@ -138,7 +138,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
  */
 class AssignmentStore () {
   val Root = null
-  var assgStore = new AssignmentMap() // Abused to get space-efficiency
+  var assgMap = new AssignmentMap()
   var parents = HashMap[Int,Array[Int]]()  // particleId -> list of parents
   var children = HashMap[Int,Array[Int]]() // particleId -> list of children
 
@@ -154,7 +154,7 @@ class AssignmentStore () {
 
   /** Creates new topic assignment vector for document */
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
-    assgStore.newDoc(particleId, newDocIndex)
+    assgMap.newDoc(particleId, newDocIndex)
 
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
    no particle has copied it during the resampling step. If an entire subtree
