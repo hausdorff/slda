@@ -149,7 +149,10 @@ class AssignmentStore () {
   /** Sets topic assignment for word at location wordIdx in document docId.
    Additionally, the old value is inserted into the child particles to maintain
    consistency. Unlike `get` the parents are NOT affected. */
-  def set (particleId: Int, docId: Int, wordIdx: Int): Unit = { }
+  def set (particleId: Int, docId: Int, wordIdx: Int, topic: Int): Unit = { }
+
+  /** Creates new topic assignment vector for document */
+  def newDocument (particleId: Int, newDocIndex: Int, doclen: Int): Unit = { }
 
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
    no particle has copied it during the resampling step. If an entire subtree
@@ -195,7 +198,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
-      //val currAssignments = assgStore.get(particleId, docId, index)
+      //val currAssignments = assgStore.set(particleId, docId, index, sampledTopic)
       val currAssignments = rejuvSeqAssignments(docId)
       currAssignments(index) = sampledTopic
     }
@@ -205,7 +208,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
-      // TODO: delete the following line
+      //assgStore.newDocument(particleId, indexIntoSample, doc.length)
       rejuvSeqAssignments(indexIntoSample) = new Array[Int](doc.length)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
@@ -261,7 +264,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     // should use indices to decrement old topic counts?
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
-    //assgStore.set(particleId, docIdx, wordIdx)
+    //assgStore.set(particleId, docIdx, wordIdx, newTopic)
     docTopics(wordIdx) = newTopic
   }
 
