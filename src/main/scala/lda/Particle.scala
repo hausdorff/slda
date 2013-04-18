@@ -12,8 +12,8 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      val numParticles: Int, val ess: Double,
                      val rejuvBatchSize: Int,
                      var rejuvSeq: ReservoirSampler[Array[String]]) {
-  var particles = buildParticles()
   var assgStore = new AssignmentStore()
+  var particles = buildParticles()
   var currId = 0
 
   /** Builds particles */
