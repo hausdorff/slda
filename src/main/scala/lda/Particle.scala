@@ -6,7 +6,8 @@ import globals.Constants
 import stream._
 
 /** A memory- and time-efficient way to represent particles, as detailed in
- section 4 of Canini Shi Griffiths */
+ section 4 of Canini Shi Griffiths. Manages all the logic of particle
+ manipulation, copying, reading, etc */
 class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      val numParticles: Int, val ess: Double,
                      val rejuvBatchSize: Int,
