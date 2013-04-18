@@ -137,9 +137,10 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
  * assignment we're looking for.
  */
 class AssignmentStore () {
-  var particleMap = HashMap[Int,Particle]()
-  var parents = HashMap[Int,Int]()
-  var children = HashMap[Int,Int]()
+  val Root = null
+  var assgStore = new AssignmentMap() // Abused to get space-efficiency
+  var parents = HashMap[Int,Array[Int]]()  // particleId -> list of parents
+  var children = HashMap[Int,Array[Int]]() // particleId -> list of children
 
   /** Gets a paticle's topic assignment at a specific wordIdx in a document.
    If we do not find wordIdx in docId, then we recurse up until we do. We should
@@ -152,13 +153,39 @@ class AssignmentStore () {
   def set (particleId: Int, docId: Int, wordIdx: Int, topic: Int): Unit = { }
 
   /** Creates new topic assignment vector for document */
-  def newDocument (particleId: Int, newDocIndex: Int, doclen: Int): Unit = { }
+  def newDocument (particleId: Int, newDocIndex: Int): Unit =
+    assgStore.newDoc(particleId, newDocIndex)
 
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
    no particle has copied it during the resampling step. If an entire subtree
    is inactive, then it can be deleted. If a node is inactive, but has active
    children, then it can be merged with the children.*/
   def prune (): Unit = { }
+}
+
+/** Map from a (particle, document, word) -> topic -- that is, a map from a
+ word in a particular document of a particular particle. Simple object wrapper
+ that abstracts away the fact that this map is a three-layer hash table.
+ 
+ Normally used by AssignmentStore, which exploits the redundancy of particle
+ topic assignments to produce a space-efficient representation of the state
+ space of a particular run of LDA. */
+class AssignmentMap () {
+  // particleId -> docId for reservoir sampler -> word idx -> topic assignments
+  var assgMap = HashMap[Int,HashMap[Int,HashMap[Int,Int]]]()
+
+  /** Queries particle for topic assignment of a word in document; returns None
+   if there is no such word in that document of that particle */
+  def getTopic (particleId: Int, docId: Int, wordId: Int): Int =
+    assgMap(particleId)(docId)(wordId)
+
+  def setTopic (particleId: Int, docId: Int, wordId: Int, topic: Int) =
+    assgMap(particleId)(docId)(wordId) = topic
+
+  /** Builds new representation of topic assignments */
+  def newDoc (particleId: Int, docId: Int): Unit = {
+    assgMap(particleId)(docId) = HashMap[Int,Int]()
+  }
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
@@ -208,7 +235,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
-      //assgStore.newDocument(particleId, indexIntoSample, doc.length)
+      //assgStore.newDocument(particleId, indexIntoSample)
       rejuvSeqAssignments(indexIntoSample) = new Array[Int](doc.length)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
