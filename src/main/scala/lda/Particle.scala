@@ -168,6 +168,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
   var currDocVect = new DocumentUpdateVector(topics)
+  // TODO: DELETE THIS
   var rejuvSeqAssignments = HashMap[Int,Array[Int]]()
   var rejuvSeqDocVects = HashMap[Int,DocumentUpdateVector]()
 
@@ -194,6 +195,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
+      //val currAssignments = assgStore.get(particleId, docId, index)
       val currAssignments = rejuvSeqAssignments(docId)
       currAssignments(index) = sampledTopic
     }
@@ -203,6 +205,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
+      // TODO: delete the following line
       rejuvSeqAssignments(indexIntoSample) = new Array[Int](doc.length)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
@@ -235,6 +238,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     copiedParticle.weight = weight
     copiedParticle.currDocVect = currDocVect.copy
     // copy rejuvSeqAssignments
+    // TODO: DELETE THIS ALL, POSSIBLY THE WHOLE METHOD
     rejuvSeqAssignments.foreach
     { kv =>
       val copiedVal = new Array[Int](kv._2.length);
@@ -247,14 +251,17 @@ class Particle (val topics: Int, val initialWeight: Double,
   }
 
   private def assignNewTopic (docIdx: Int, wordIdx: Int, newTopic: Int): Unit = {
+    //val oldTopic = assgStore.get(particleId, docIdx, wordIdx)
+    // also: DELETE THE FOLLOWING TWO LINES
     var docTopics = rejuvSeqAssignments(docIdx)
+    val oldTopic = docTopics(wordIdx)
     var docUpdateVect = rejuvSeqDocVects(docIdx)
     val doc = rejuvSeq.getSampleSet()(docIdx)
     val word = doc(wordIdx)
-    val oldTopic = docTopics(wordIdx)
     // should use indices to decrement old topic counts?
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
+    //assgStore.set(particleId, docIdx, wordIdx)
     docTopics(wordIdx) = newTopic
   }
 
@@ -314,6 +321,8 @@ class Particle (val topics: Int, val initialWeight: Double,
     }
     val doc = rejuvSeq.getSampleSet()(docId)
     val word = doc(wordIdx)
+    //val priorTopic = assgStore.get(particleId, docId, wordIdx)
+    // TODO: REMOVE THE FOLLOWING TWO LINES
     val docTopics = rejuvSeqAssignments(docId)
     val priorTopic = docTopics(wordIdx)
     val docVect = rejuvSeqDocVects(docId)
@@ -332,6 +341,9 @@ class Particle (val topics: Int, val initialWeight: Double,
 
   override def toString (): String = {
     var outstr = "Particle assignments:\n"
+    // TODO: DELETE ALL OF THIS, replace with something akin to: (1) iterate
+    // through all the words in every document, (2) query each point in the
+    // assignment store, (3) print it out
     rejuvSeqAssignments.foreach {
       kv => outstr += "\t" + kv._1 + " -> " + kv._2.deep.mkString(" ") + "\n"
     }
