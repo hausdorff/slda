@@ -11,10 +11,19 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      val numParticles: Int, val ess: Double,
                      val rejuvBatchSize: Int,
                      var rejuvSeq: ReservoirSampler[Array[String]]) {
-  /* (1) generate particles, eg,
-   val p = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq) */
-  var particles = Array.fill(numParticles)(new Particle(T, 1.0/numParticles,
-                                                        alpha, beta, rejuvSeq))
+  var particles = buildParticles()
+  var assgStore = new AssignmentStore()
+  var currId = 0
+
+  /** Builds particles */
+  private def buildParticles (): Array[Particle] = {
+    var particles = Array.fill[Particle](numParticles)(null)
+    for (i <- 0 to numParticles-1) {
+      particles(i) = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq,
+                                  assgStore, newAssignStoreId())
+    }
+    particles
+  }
 
   /** Reweights particles proportional to the probability they account for the
    data. UNNORMALIZED. Does this for every particle. Corresponds to line 4 of
@@ -90,6 +99,16 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
 
   def printParticles (): Unit = particles.foreach { p => println(p) }
 
+  /** Generates the id by which the particles are to access the assignment
+   store. When you query the assignment store for a specific topic assignment
+   (or when you set the assignment), this id tells the store which particle to
+   do the lookup in. */
+  private def newAssignStoreId (): Int = {
+    val newid = currId
+    currId += 1
+    newid
+  }
+
   /** Creates an array of particles resampled proportional to the weights */
   private def multinomialResample (unnormalizedWeights: Array[Double]):
   Array[Particle] = {
@@ -98,7 +117,8 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     (0 to numParticles-1).foreach {
       i =>
         val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
-      resampledParticles(i) = particles(indexOfParticleToCopy).copy
+      resampledParticles(i) =
+        particles(indexOfParticleToCopy).copy(newAssignStoreId())
     }
     resampledParticles
   }
@@ -139,7 +159,8 @@ class AssignmentStore () {
 
 class Particle (val topics: Int, val initialWeight: Double,
                 val alpha: Double, val beta: Double,
-                val rejuvSeq: ReservoirSampler[Array[String]]) {
+                val rejuvSeq: ReservoirSampler[Array[String]],
+                var assgStore: AssignmentStore, val particleId: Int) {
   /* NOTE: `rejuvSeq` depends on the PfLda class to populate it with the
    documents that it will use for rejuvenation; it DEPENDS ON SIDE-EFFECTS to do
    its job. */
@@ -206,9 +227,9 @@ class Particle (val topics: Int, val initialWeight: Double,
   }
 
   /** Proper deep copy of the particle */
-  def copy (): Particle = {
+  def copy (newAssgnStoreId: Int): Particle = {
     val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
-                                      rejuvSeq)
+                                      rejuvSeq, assgStore, newAssgnStoreId)
     copiedParticle.globalVect = globalVect.copy
     copiedParticle.weight = weight
     copiedParticle.currDocVect = currDocVect.copy
