@@ -137,7 +137,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
  * assignment we're looking for.
  */
 class AssignmentStore () {
-  val Root = null
   var assgMap = new AssignmentMap()
   var parents = HashMap[Int,Array[Int]]()  // particleId -> list of parents
   var children = HashMap[Int,Array[Int]]() // particleId -> list of children
@@ -145,12 +144,13 @@ class AssignmentStore () {
   /** Gets a paticle's topic assignment at a specific wordIdx in a document.
    If we do not find wordIdx in docId, then we recurse up until we do. We should
    always find it at the root, and if we don't then something has gone wrong. */
-  def get (particleId: Int, docId: Int, wordIdx: Int): Int = { -1 }
+  def getTopic (particleId: Int, docId: Int, wordIdx: Int): Int = { -1 }
 
   /** Sets topic assignment for word at location wordIdx in document docId.
    Additionally, the old value is inserted into the child particles to maintain
    consistency. Unlike `get` the parents are NOT affected. */
-  def set (particleId: Int, docId: Int, wordIdx: Int, topic: Int): Unit = { }
+  def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
+  Unit = { }
 
   /** Creates new topic assignment vector for document */
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
