@@ -11,6 +11,21 @@ import scala.util.{ Random => Random }
 
 
 class ParticleTests extends FunSuite {
+  /** Persists documents as we would expect */
+  test("particle document collection persisted correctly") {
+    val t = 3
+    val alpha = 0.1
+    val beta = 0.1
+    val numParticles = 3
+    val ess = 0.1
+    val rejuvBatchSize = 10
+    val numdocs = 10
+    val rejuvSeq = new ReservoirSampler[Array[String]](numdocs)
+    var ps = new ParticleStore (3, 0.1, 0.1, numParticles, ess, rejuvBatchSize,
+                                rejuvSeq)
+  }
+
+  /*
   test("test copy mechanism") {
     var srcParticle = new Particle(3, 1.0/3, 0.1, 0.1,
                                    new ReservoirSampler(3))
@@ -39,5 +54,6 @@ class ParticleTests extends FunSuite {
     assert(srcParticle.rejuvSeqDocVects !=
       dstParticle.rejuvSeqDocVects)
   }
+  */
 }
 
