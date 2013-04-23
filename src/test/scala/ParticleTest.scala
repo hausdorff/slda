@@ -11,18 +11,24 @@ import scala.util.{ Random => Random }
 
 
 class ParticleTests extends FunSuite {
-  /** Persists documents as we would expect */
-  test("particle document collection persisted correctly") {
-    val t = 3
+  /** numdocs is the number of documents to store in the reservoir sampler */
+  def buildParticleStore (numDocs: Int): ParticleStore = {
+    val t = 2
     val alpha = 0.1
     val beta = 0.1
-    val numParticles = 3
-    val ess = 0.1
-    val rejuvBatchSize = 10
-    val numdocs = 10
-    val rejuvSeq = new ReservoirSampler[Array[String]](numdocs)
-    var ps = new ParticleStore (3, 0.1, 0.1, numParticles, ess, rejuvBatchSize,
-                                rejuvSeq)
+    val numParticles = 5
+    val ess = 20
+    val rejuvBatchSize = 256
+    val rejuvSeq = new ReservoirSampler[Array[String]](numDocs)
+    var ps = new ParticleStore (t, alpha, beta, numParticles, ess,
+                                rejuvBatchSize, rejuvSeq)
+
+    ps
+  }
+
+  /** Persists documents as we would expect */
+  test("particle document collection persisted correctly") {
+    var ps = buildParticleStore(10)
   }
 
   /*
