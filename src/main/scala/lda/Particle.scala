@@ -156,6 +156,9 @@ class AssignmentStore () {
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
     assgMap.newDoc(particleId, newDocIndex)
 
+  def newParticle (particleId: Int): Unit =
+    assgMap.newParticle(particleId)
+
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
    no particle has copied it during the resampling step. If an entire subtree
    is inactive, then it can be deleted. If a node is inactive, but has active
@@ -183,9 +186,11 @@ class AssignmentMap () {
     assgMap(particleId)(docId)(wordId) = topic
 
   /** Builds new representation of topic assignments */
-  def newDoc (particleId: Int, docId: Int): Unit = {
+  def newDoc (particleId: Int, docId: Int): Unit =
     assgMap(particleId)(docId) = HashMap[Int,Int]()
-  }
+
+  def newParticle (particleId: Int): Unit =
+    assgMap(particleId) = HashMap[Int,HashMap[Int,Int]]()
 }
 
 class Particle (val topics: Int, val initialWeight: Double,
