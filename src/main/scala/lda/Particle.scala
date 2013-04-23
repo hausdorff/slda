@@ -12,18 +12,22 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      val numParticles: Int, val ess: Double,
                      val rejuvBatchSize: Int,
                      var rejuvSeq: ReservoirSampler[Array[String]]) {
-  var assgStore = new AssignmentStore()
-  var particles = buildParticles()
+  var (assgStore,particles) = initParticles()
   var currId = 0
 
-  /** Builds particles */
-  private def buildParticles (): Array[Particle] = {
+  /** Creates all the particles (requested by `numParticles` parameter), as
+   as the corresponding entry in the AssignmentStore that tracks the topic
+   assignments of the words for each particle. */
+  private def initParticles (): (AssignmentStore, Array[Particle]) = {
+    var store = new AssignmentStore()
     var particles = Array.fill[Particle](numParticles)(null)
     for (i <- 0 to numParticles-1) {
+      val id = newAssignStoreId()
+      store.newParticle(id)
       particles(i) = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq,
-                                  assgStore, newAssignStoreId())
+                                  store, id)
     }
-    particles
+    (store, particles)
   }
 
   /** Reweights particles proportional to the probability they account for the
