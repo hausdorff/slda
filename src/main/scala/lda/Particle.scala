@@ -142,6 +142,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
  * find the assignment we're looking for.
  */
 class AssignmentStore () {
+
   var assgMap = new AssignmentMap()
   var parents = HashMap[Int,Array[Int]]()  // particleId -> list of parents
   var children = HashMap[Int,Array[Int]]() // particleId -> list of children
