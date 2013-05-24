@@ -7,6 +7,7 @@ import wrangle._
 import org.scalatest.FunSuite
 import java.util.{ Arrays => Arrays }
 import scala.collection.{ Set => Set }
+import scala.collection.mutable.{ HashMap => HashMap }
 import scala.util.{ Random => Random }
 
 
@@ -16,7 +17,7 @@ class PfLdaTests extends FunSuite {
     val wordIdx = Stats.sampleCategorical(topic)
     vocabulary(wordIdx)
   }
-  
+
   def generateDoc (vocabulary: Array[String], doclength: Int,
                    topic1: Array[Double], topic2: Array[Double],
                    mixture: Array[Double]): String = {
@@ -47,14 +48,14 @@ class PfLdaTests extends FunSuite {
     // Nature topic
     val topic2 = Array[Double](1.0/3, 1.0/3, 1.0/3, 0, 0, 0)
     val topic2Cdf = Stats.normalizeAndMakeCdf(topic2)
-    
+
     var corpus = new Array[(Array[Double], String)](documents)
     (0 to documents-1).foreach
     { i => val mixture = Array[Double](r.nextDouble(), 1)
      corpus(i) = (mixture,
                   generateDoc(vocabulary, doclength, topic1, topic2,
                               mixture)) }
-    
+
     corpus
   }
 
@@ -126,12 +127,37 @@ class PfLdaTests extends FunSuite {
     val sampleSize = 16
     val numParticles = 5
     val ess = 20
-    val rejuvBatchSize = 128
-    val rejuvMcmcSteps = 32
+    val rejuvBatchSize = 256
+    val rejuvMcmcSteps = 512
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize,
                               numParticles, ess, rejuvBatchSize,
                               rejuvMcmcSteps)
     pflda
+  }
+
+  // In a partical, look at each topic. in each topic have a look at how much
+  // each word corresponds to it on a percentage basis.
+  def printParticleTopics (p: Particle, words: Array[String], topics: Int,
+                           vocabSz: Int):
+  Unit = {
+    val pcntgs = p.globalVect.timesWordAssignedTopic
+    for (t <- 0 to topics-1) {
+      var wordPcntg = new Array[(Double, String)](words.size)
+      for (i <- 0 to words.size-1) {
+        val w = words(i)
+        wordPcntg(i) = (((pcntgs(w, t).toDouble) / vocabSz), w)
+      }
+      println("topic " + t)
+      println(wordPcntg.sorted.deep.mkString)
+    }
+  }
+
+  def printTopics (lda: PfLda): Unit = {
+    val particles = lda.particles.particles
+    val keys = lda.vocabToId.toArray[(String,Int)]
+    val numWords = lda.currWordIdx
+    particles.foreach {p => printParticleTopics(p, keys.map { a => a._1 },
+                                                lda.T, numWords)}
   }
 
   test("build test corpus") {
@@ -174,10 +200,11 @@ class PfLdaTests extends FunSuite {
             " doesn't necessarily correspond to topic #1")
       println()
     }
-    
+
     //pflda.printParticles
+    printTopics(pflda)
   }
-  
+
   /*
   test("Test that PfLda is constructed correctly") {
     val topics = 3
@@ -191,7 +218,7 @@ class PfLdaTests extends FunSuite {
     val corpus = Array("the cow is short", "I can't find my glasses",
                        "walnuts are delicious")
     pflda.ingestDocs(corpus)
-    
+
     // Test globals roughly look ok
     assert(pflda.currVocabSize == 5)
     assert(pflda.rejuvSeq.occupied == 3)
@@ -203,7 +230,7 @@ class PfLdaTests extends FunSuite {
     assert(math.abs(targetWeights.reduceLeft(_+_)-1) <= 0.1)
   }
   */
-  
+
   /*
   test("Test ingestDoc for particle filter-based LDA") {
     val pflda = new lda.PfLda(2, 0.1, 0.1, 2, 20, 0.2)
@@ -228,10 +255,10 @@ class GlobalUpdateVectorTests extends FunSuite {
     srcVect.timesTopicAssignedTotal(1) = 1
     srcVect.timesTopicAssignedTotal(2) = 1
     val dstVect = srcVect.copy()
-    
+
     dstVect.timesTopicAssignedTotal(0) = 17
     dstVect.timesWordAssignedTopic(("cows", 3)) = 101
-    
+
     assert(srcVect.timesTopicAssignedTotal(0) !=
       dstVect.timesTopicAssignedTotal(0))
     assert(srcVect.timesWordAssignedTopic(("cows", 3)) !=
@@ -239,7 +266,7 @@ class GlobalUpdateVectorTests extends FunSuite {
 
     srcVect.timesTopicAssignedTotal(0) = 180
     srcVect.timesWordAssignedTopic(("cows", 3)) = 2
-    
+
     assert(srcVect.timesTopicAssignedTotal(0) !=
       dstVect.timesTopicAssignedTotal(0))
     assert(srcVect.timesWordAssignedTopic(("cows", 3)) !=
@@ -255,7 +282,7 @@ class DocumentUpdateVectorTests extends FunSuite {
     srcVect.timesTopicOccursInDoc(1) = 1
     srcVect.timesTopicOccursInDoc(2) = 1
     val dstVect = srcVect.copy()
-    
+
     dstVect.timesTopicOccursInDoc(0) = 17
     dstVect.wordsInDoc = 20
 
@@ -265,7 +292,7 @@ class DocumentUpdateVectorTests extends FunSuite {
 
     srcVect.timesTopicOccursInDoc(0) = 180
     srcVect.wordsInDoc = 7
-    
+
     assert(srcVect.timesTopicOccursInDoc(0) !=
       dstVect.timesTopicOccursInDoc(0))
     assert(srcVect.wordsInDoc != dstVect.wordsInDoc)
