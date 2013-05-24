@@ -26,7 +26,7 @@ class ParticleTests extends FunSuite {
   }
 
   /** Persists documents as we would expect */
-  test("particle document collection persisted correctly") {
+  test("assignment store sets and gets topics correctly") {
     var ps = buildParticleStore(10)
   }
 
@@ -52,7 +52,7 @@ class ParticleTests extends FunSuite {
     srcParticle.rejuvSeqAssignments(3) = Array[Int](1,2,3)
     assert(srcParticle.rejuvSeqAssignments !=
       dstParticle.rejuvSeqAssignments)
-    
+
     assert(srcParticle.rejuvSeqDocVects ==
       dstParticle.rejuvSeqDocVects)
     srcParticle.rejuvSeqDocVects(4) = new DocumentUpdateVector(3)
