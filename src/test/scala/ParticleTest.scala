@@ -30,35 +30,60 @@ class ParticleTests extends FunSuite {
     var ps = buildParticleStore(10)
   }
 
-  /*
+class GlobalUpdateVectorTests extends FunSuite {
   test("test copy mechanism") {
-    var srcParticle = new Particle(3, 1.0/3, 0.1, 0.1,
-                                   new ReservoirSampler(3))
-    val newItemIdx = srcParticle.rejuvSeq.add(Array("cows", "are",
-                                                    "delicious"))
-    var dstParticle = srcParticle.copy()
-    // make sure the rejuvseq gets pointed at the same place
-    assert(srcParticle.rejuvSeq == dstParticle.rejuvSeq)
-    assert(srcParticle.rejuvSeq.getSampleSet.deep ==
-      dstParticle.rejuvSeq.getSampleSet.deep)
+    // Tests that if we copy one vector, mutating one won't mutate the other
+    val srcVect = new GlobalUpdateVector(3)
+    srcVect.timesWordAssignedTopic(("cows", 3)) = 10
+    srcVect.timesWordAssignedTopic(("are", 2)) = 11
+    srcVect.timesWordAssignedTopic(("delicious", 1)) = 9
+    srcVect.timesTopicAssignedTotal(0) = 1
+    srcVect.timesTopicAssignedTotal(1) = 1
+    srcVect.timesTopicAssignedTotal(2) = 1
+    val dstVect = srcVect.copy()
 
-    // make sure update vectors are pointed at *different* places, but
-    // still currently have the same values
-    assert(srcParticle.globalVect != dstParticle.globalVect)
-    assert(srcParticle.currDocVect != dstParticle.currDocVect)
-    // tricky; collections override `==`
-    assert(srcParticle.rejuvSeqAssignments ==
-      dstParticle.rejuvSeqAssignments)
-    srcParticle.rejuvSeqAssignments(3) = Array[Int](1,2,3)
-    assert(srcParticle.rejuvSeqAssignments !=
-      dstParticle.rejuvSeqAssignments)
+    dstVect.timesTopicAssignedTotal(0) = 17
+    dstVect.timesWordAssignedTopic(("cows", 3)) = 101
 
-    assert(srcParticle.rejuvSeqDocVects ==
-      dstParticle.rejuvSeqDocVects)
-    srcParticle.rejuvSeqDocVects(4) = new DocumentUpdateVector(3)
-    assert(srcParticle.rejuvSeqDocVects !=
-      dstParticle.rejuvSeqDocVects)
+    assert(srcVect.timesTopicAssignedTotal(0) !=
+      dstVect.timesTopicAssignedTotal(0))
+    assert(srcVect.timesWordAssignedTopic(("cows", 3)) !=
+      dstVect.timesWordAssignedTopic(("cows", 3)))
+
+    srcVect.timesTopicAssignedTotal(0) = 180
+    srcVect.timesWordAssignedTopic(("cows", 3)) = 2
+
+    assert(srcVect.timesTopicAssignedTotal(0) !=
+      dstVect.timesTopicAssignedTotal(0))
+    assert(srcVect.timesWordAssignedTopic(("cows", 3)) !=
+      dstVect.timesWordAssignedTopic(("cows", 3)))
   }
-  */
+}
+
+class DocumentUpdateVectorTests extends FunSuite {
+  test("test copy mechanism") {
+    // Tests that if we copy one vector, mutating one won't mutate the other
+    val srcVect = new DocumentUpdateVector(3)
+    srcVect.timesTopicOccursInDoc(0) = 1
+    srcVect.timesTopicOccursInDoc(1) = 1
+    srcVect.timesTopicOccursInDoc(2) = 1
+    val dstVect = srcVect.copy()
+
+    dstVect.timesTopicOccursInDoc(0) = 17
+    dstVect.wordsInDoc = 20
+
+    assert(srcVect.timesTopicOccursInDoc(0) !=
+      dstVect.timesTopicOccursInDoc(0))
+    assert(srcVect.wordsInDoc != dstVect.wordsInDoc)
+
+    srcVect.timesTopicOccursInDoc(0) = 180
+    srcVect.wordsInDoc = 7
+
+    assert(srcVect.timesTopicOccursInDoc(0) !=
+      dstVect.timesTopicOccursInDoc(0))
+    assert(srcVect.wordsInDoc != dstVect.wordsInDoc)
+  }
+}
+
 }
 
