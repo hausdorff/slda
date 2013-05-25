@@ -121,7 +121,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
             countVctr.numTimesTopicAssignedTotal(t)
           percs(i) = (prctg, w);
         }
-        println("\ttopic " + t)
+        println("topic " + t)
         println("\t" + percs.sorted.reverse.deep.mkString("\n\t"))
       }
       println
