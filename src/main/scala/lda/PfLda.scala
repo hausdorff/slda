@@ -113,16 +113,16 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       println("PARTICLE " + p)
       val countVctr = particleObjs(p).globalVect
       for (t <- 0 to T-1) {
-        val percs = new Array[(String,Double)](wrdWIdx.size)
+        val percs = new Array[(Double,String)](wrdWIdx.size)
         for (i <- 0 to wrdWIdx.size-1) {
           // grab each word, compute how much it comprises a given topic
           val (w,id) = wrdWIdx(i)
           val prctg = countVctr.numTimesWordAssignedTopic(w, t).toDouble /
             countVctr.numTimesTopicAssignedTotal(t)
-          percs(i) = (w, prctg);
+          percs(i) = (prctg, w);
         }
         println("\ttopic " + t)
-        println("\t" + percs.deep.mkString("\n\t"))
+        println("\t" + percs.sorted.reverse.deep.mkString("\n\t"))
       }
       println
     }
