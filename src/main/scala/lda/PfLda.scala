@@ -33,7 +33,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
     docs.foreach{ doc => ingestDoc(doc) }
-  
+
   /** Ingest one document, update LDA as we go
    *
    * For each new word, we reweight the particles. Then we sample a topic
@@ -47,7 +47,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     (0 to Words.length-1).foreach{ i => processWord(i, Words, docId) }
     docId
   }
-  
+
   /** Process the ith entry in `words`; copied pretty much verbatim from
    Algorithm 4 of Canini, et al "Online Inference of Topics..." */
   private def processWord (i: Int, words: Array[String], docId: Int): Unit = {
@@ -58,7 +58,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     particles.unnormalizedReweightAll(currword, currVocabSize)
     particles.transitionAll(i, words, currVocabSize, docId)
     particles.normalizeWeights()
-    
+
     if (particles.shouldRejuvenate())
       particles.rejuvenate(allWordIds(), currVocabSize)
   }
@@ -100,6 +100,31 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     if (!(vocabToId contains word)) {
       vocabToId(word) = currVocabSize
       currVocabSize += 1
+    }
+  }
+
+  // print total percentage a word as it occurs in each particular topic
+  def printTopics (): Unit = {
+    val wrdWIdx = vocabToId.toArray[(String,Int)]
+    val particleObjs = particles.particles
+
+
+    for (p <- 0 to particleObjs.length-1) {
+      println("PARTICLE " + p)
+      val countVctr = particleObjs(p).globalVect
+      for (t <- 0 to T-1) {
+        val percs = new Array[(String,Double)](wrdWIdx.size)
+        for (i <- 0 to wrdWIdx.size-1) {
+          // grab each word, compute how much it comprises a given topic
+          val (w,id) = wrdWIdx(i)
+          val prctg = countVctr.numTimesWordAssignedTopic(w, t).toDouble /
+            countVctr.numTimesTopicAssignedTotal(t)
+          percs(i) = (w, prctg);
+        }
+        println("topic " + t)
+        println(percs.deep.mkString(" "))
+      }
+      println
     }
   }
 }

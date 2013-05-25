@@ -135,31 +135,6 @@ class PfLdaTests extends FunSuite {
     pflda
   }
 
-  // In a partical, look at each topic. in each topic have a look at how much
-  // each word corresponds to it on a percentage basis.
-  def printParticleTopics (p: Particle, words: Array[String], topics: Int,
-                           vocabSz: Int):
-  Unit = {
-    val pcntgs = p.globalVect.timesWordAssignedTopic
-    for (t <- 0 to topics-1) {
-      var wordPcntg = new Array[(Double, String)](words.size)
-      for (i <- 0 to words.size-1) {
-        val w = words(i)
-        wordPcntg(i) = (((pcntgs(w, t).toDouble) / vocabSz), w)
-      }
-      println("topic " + t)
-      println(wordPcntg.sorted.deep.mkString)
-    }
-  }
-
-  def printTopics (lda: PfLda): Unit = {
-    val particles = lda.particles.particles
-    val keys = lda.vocabToId.toArray[(String,Int)]
-    val numWords = lda.currWordIdx
-    particles.foreach {p => printParticleTopics(p, keys.map { a => a._1 },
-                                                lda.T, numWords)}
-  }
-
   test("build test corpus") {
     //val corpus = generateCorpus()
     val corpus = generateSteyversGriffithsCorpus()
@@ -202,7 +177,7 @@ class PfLdaTests extends FunSuite {
     }
 
     //pflda.printParticles
-    printTopics(pflda)
+    pflda.printTopics
   }
 
   /*
