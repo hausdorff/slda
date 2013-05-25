@@ -138,16 +138,7 @@ class PfLdaTests extends FunSuite {
   test("build test corpus") {
     //val corpus = generateCorpus()
     val corpus = generateSteyversGriffithsCorpus()
-    /*
-     corpus.foreach{ item => println((item._1.deep.mkString(" "),
-     item._2.deep.mkString(" "))) } */
     val pflda = standardPfLda()
-    //pflda.ingestDoc(corpus(0)._2)
-    //pflda.ingestDoc(corpus(1)._2)
-
-    //println(pflda.vocabToId.size)
-    //println(pflda.currVocabSize)
-    //println(pflda.rejuvSeq)
     // ingest documents, store a map of where they are in Reservoir Sampler
     var map = new Array[Int](corpus.length)
     for (i <- 0 to corpus.length-1) {
@@ -180,43 +171,6 @@ class PfLdaTests extends FunSuite {
     pflda.printTopics
   }
 
-  /*
-  test("Test that PfLda is constructed correctly") {
-    val topics = 3
-    val alpha = 0.1
-    val beta = 0.1
-    val sampleSize = 5
-    val numParticles = 5
-    val ess = 1
-    var pflda = new lda.PfLda(topics, alpha, beta, sampleSize, numParticles,
-                              ess)
-    val corpus = Array("the cow is short", "I can't find my glasses",
-                       "walnuts are delicious")
-    pflda.ingestDocs(corpus)
-
-    // Test globals roughly look ok
-    assert(pflda.currVocabSize == 5)
-    assert(pflda.rejuvSeq.occupied == 3)
-    assert(pflda.particles.size == numParticles)
-
-    var targetWeights = Array.fill(numParticles)(0.0)
-    (0 to numParticles-1).foreach { i =>
-      targetWeights(i) = pflda.particles(i).weight }
-    assert(math.abs(targetWeights.reduceLeft(_+_)-1) <= 0.1)
-  }
-  */
-
-  /*
-  test("Test ingestDoc for particle filter-based LDA") {
-    val pflda = new lda.PfLda(2, 0.1, 0.1, 2, 20, 0.2)
-    val corpus = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
-    pflda.ingestDocs(corpus)
-
-    //println(pflda.Whitelist)
-    println(pflda.vocabToId.size)
-    println("weights: " + pflda.particles.deep)
-  }
-  */
 }
 
 class GlobalUpdateVectorTests extends FunSuite {
