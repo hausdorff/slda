@@ -29,6 +29,7 @@ class ParticleTests extends FunSuite {
   test("assignment store sets and gets topics correctly") {
     var ps = buildParticleStore(10)
   }
+}
 
 class GlobalUpdateVectorTests extends FunSuite {
   test("test copy mechanism") {
@@ -83,7 +84,5 @@ class DocumentUpdateVectorTests extends FunSuite {
       dstVect.timesTopicOccursInDoc(0))
     assert(srcVect.wordsInDoc != dstVect.wordsInDoc)
   }
-}
-
 }
 
