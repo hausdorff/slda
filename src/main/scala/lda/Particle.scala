@@ -197,10 +197,11 @@ class AssignmentMap () {
 
   /** Checks to see if a particle contains a topic assignment for some word in
    some document */
-  def wordAssigned (particleId: Int, docId: Int, wordId: Int): Boolean =
-    assgMap contains particle &&
-    assgMap(particleId) contains docId &&
-    assgmap(particleId)(docId) contains wordId
+  def wordAssigned (particleId: Int, docId: Int, wordId: Int): Boolean = {
+    assgMap.contains(particleId) &&
+    assgMap(particleId).contains(docId) &&
+    assgMap(particleId)(docId).contains(wordId)
+  }
 
   /** Queries particle for topic assignment of a word in document; returns None
    if there is no such word in that document of that particle */
