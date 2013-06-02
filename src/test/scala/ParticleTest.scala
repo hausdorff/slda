@@ -26,11 +26,14 @@ class ParticleTests extends FunSuite {
   }
 
   /** Persists documents as we would expect */
-  test("test ingest one word") {
-    var ps = new AssignmentStore()
-    ps.newParticle(0)
-    ps.newDocument(0, 0)
-    assert(ps.assgMap.assgMap.size == 1) // tests number of particles
+  test("AssignmentStore.getTopic") {
+    var as = new AssignmentStore()
+    as.newParticle(0)
+    as.newDocument(0, 0)
+    val thrown = intercept[java.util.NoSuchElementException] {
+      as.getTopic(0,0,0)
+    }
+    assert(true)
   }
 }
 
