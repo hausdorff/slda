@@ -146,7 +146,7 @@ class AssignmentStore () {
 
   var assgMap = new AssignmentMap()
   var parent = HashMap[Int,Int]()          // particleId -> id of parent
-  var children = HashMap[Int,Array[Int]]() // particleId -> list of children
+  var children = HashMap[Int,List[Int]]()  // particleId -> list of children
 
   /** Gets a paticle's topic assignment at a specific wordIdx in a document.
    If we do not find wordIdx in docId, then we recurse up until we do. We
