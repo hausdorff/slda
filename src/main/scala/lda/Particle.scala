@@ -168,7 +168,13 @@ class AssignmentStore () {
    Additionally, the old value is inserted into the child particles to maintain
    consistency. Unlike `get` the parent are NOT affected. */
   def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
-  Unit = { }
+  Unit = {
+    assgMap.setTopic(particleId, docId, wordIdx, topic)
+    if (children.contains(particleId)) {
+      children(particleId).foreach { childId =>
+        setTopic(childId, docId, wordIdx, topic)}
+    }
+  }
 
   /** Creates new topic assignment vector for document */
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
