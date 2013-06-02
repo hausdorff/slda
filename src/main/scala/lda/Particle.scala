@@ -200,6 +200,13 @@ class AssignmentMap () {
     assgMap(particleId) = HashMap[Int,HashMap[Int,Int]]()
 }
 
+/** `Particle` is a sample from the space of possible states that a run of LDA
+ could possibly be in.
+
+ In our case, the `Particle` stores (1) a set of assignments, (2) a weight for
+ this particle, and (3) a document and global update vector. The topic
+ assignments in particular represent the "state" or a run of LDA, since they
+ basically determine what the run of LDA does next. */
 class Particle (val topics: Int, val initialWeight: Double,
                 val alpha: Double, val beta: Double,
                 val rejuvSeq: ReservoirSampler[Array[String]],
@@ -237,7 +244,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
-      //val currAssignments = assgStore.set(particleId, docId, idx,
+      //val currAssignments = assgStore.setTopic(particleId, docId, idx,
       //sampledTopic)
       val currAssignments = rejuvSeqAssignments(docId)
       currAssignments(idx) = sampledTopic
@@ -305,7 +312,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     // should use indices to decrement old topic counts?
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
-    //assgStore.set(particleId, docIdx, wordIdx, newTopic)
+    //assgStore.setTopic(particleId, docIdx, wordIdx, newTopic)
     docTopics(wordIdx) = newTopic
   }
 
