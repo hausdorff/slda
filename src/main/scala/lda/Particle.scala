@@ -1,5 +1,6 @@
 package lda
 
+import scala.annotation.tailrec
 import scala.collection.mutable.{ HashMap => HashMap }
 
 import globals.Constants
@@ -151,7 +152,17 @@ class AssignmentStore () {
    If we do not find wordIdx in docId, then we recurse up until we do. We
    should always find it at the root, and if we don't then something has gone
    wrong. */
-  def getTopic (particleId: Int, docId: Int, wordIdx: Int): Int = { -1 }
+  @tailrec
+  def getTopic (particleId: Int, docId: Int, wordIdx: Int): Int = {
+    // if word assigned topic in current particle, return.
+    // else recurse upwards.
+    // if no parents entry for particleId, then error out.
+    if (assgMap.wordAssigned(particleId, docId, wordIdx))
+      return assgmap.getTopic(particleId, docId, wordIdx)
+    else {
+      val parIds = parents(particleId)
+    }
+  }
 
   /** Sets topic assignment for word at location wordIdx in document docId.
    Additionally, the old value is inserted into the child particles to maintain
@@ -183,6 +194,13 @@ class AssignmentStore () {
 class AssignmentMap () {
   //particleId -> docId for reservoir sampler -> word idx -> topic assignments
   var assgMap = HashMap[Int,HashMap[Int,HashMap[Int,Int]]]()
+
+  /** Checks to see if a particle contains a topic assignment for some word in
+   some document */
+  def wordAssigned (particleId: Int, docId: Int, wordId: Int): Boolean =
+    assgMap contains particle &&
+    assgMap(particleId) contains docId &&
+    assgmap(particleId)(docId) contains wordId
 
   /** Queries particle for topic assignment of a word in document; returns None
    if there is no such word in that document of that particle */
