@@ -24,7 +24,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     var particles = Array.fill[Particle](numParticles)(null)
     for (i <- 0 to numParticles-1) {
       val id = newAssignStoreId()
-      store.newParticle(id)
+      store.newParticle(id, -1)
       particles(i) = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq,
                                   store, id)
     }
@@ -180,8 +180,13 @@ class AssignmentStore () {
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
     assgMap.newDoc(particleId, newDocIndex)
 
-  def newParticle (particleId: Int): Unit =
+  def newParticle (particleId: Int, parentId: Int): Unit = {
     assgMap.newParticle(particleId)
+    if (parentId > 0) {
+      parent(particleId) = parentId
+      children(parentId) = particleId :: children(parentId)
+    }
+  }
 
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
    no particle has copied it during the resampling step. If an entire subtree

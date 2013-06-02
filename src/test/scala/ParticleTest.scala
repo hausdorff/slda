@@ -25,15 +25,24 @@ class ParticleTests extends FunSuite {
     ps
   }
 
-  /** Persists documents as we would expect */
   test("AssignmentStore.getTopic") {
     var as = new AssignmentStore()
-    as.newParticle(0)
+    as.newParticle(0, -1)
     as.newDocument(0, 0)
     val thrown = intercept[java.util.NoSuchElementException] {
       as.getTopic(0,0,0)
     }
     assert(true)
+    // TODO: add more to this to make sure that as topic assignments are added,
+    // this keeps being correct
+  }
+
+  test("AssignmentStore.setTopic") {
+    var as = new AssignmentStore()
+    val particleId = 0
+    val docId = 0
+    as.newParticle(0, -1)
+    as.newDocument(0, 0)
   }
 }
 
