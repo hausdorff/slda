@@ -26,8 +26,11 @@ class ParticleTests extends FunSuite {
   }
 
   /** Persists documents as we would expect */
-  test("assignment store sets and gets topics correctly") {
-    var ps = buildParticleStore(10)
+  test("test ingest one word") {
+    var ps = new AssignmentStore()
+    ps.newParticle(0)
+    ps.newDocument(0, 0)
+    assert(ps.assgMap.assgMap.size == 1) // tests number of particles
   }
 }
 
