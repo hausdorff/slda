@@ -153,14 +153,14 @@ class AssignmentStore () {
    should always find it at the root, and if we don't then something has gone
    wrong. */
   @tailrec
-  def getTopic (particleId: Int, docId: Int, wordIdx: Int): Int = {
+  final def getTopic (particleId: Int, docId: Int, wordIdx: Int): Int = {
     // if word assigned topic in current particle, return.
     // else recurse upwards.
-    // if no parents entry for particleId, then error out.
+    // if no parent entry for particleId, then error out.
     if (assgMap.wordAssigned(particleId, docId, wordIdx))
-      return assgmap.getTopic(particleId, docId, wordIdx)
+      return assgMap.getTopic(particleId, docId, wordIdx)
     else {
-      val parIds = parents(particleId)
+      return getTopic(parent(particleId), docId, wordIdx)
     }
   }
 
