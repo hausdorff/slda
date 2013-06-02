@@ -145,7 +145,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
 class AssignmentStore () {
 
   var assgMap = new AssignmentMap()
-  var parents = HashMap[Int,Array[Int]]()  // particleId -> list of parents
+  var parent = HashMap[Int,Int]()          // particleId -> id of parent
   var children = HashMap[Int,Array[Int]]() // particleId -> list of children
 
   /** Gets a paticle's topic assignment at a specific wordIdx in a document.
@@ -166,7 +166,7 @@ class AssignmentStore () {
 
   /** Sets topic assignment for word at location wordIdx in document docId.
    Additionally, the old value is inserted into the child particles to maintain
-   consistency. Unlike `get` the parents are NOT affected. */
+   consistency. Unlike `get` the parent are NOT affected. */
   def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
   Unit = { }
 
