@@ -180,11 +180,16 @@ class AssignmentStore () {
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
     assgMap.newDoc(particleId, newDocIndex)
 
+  /** Creates new particle */
   def newParticle (particleId: Int, parentId: Int): Unit = {
     assgMap.newParticle(particleId)
     if (parentId > 0) {
       parent(particleId) = parentId
-      children(parentId) = particleId :: children(parentId)
+      if (children contains parentId)
+        children(parentId) = particleId :: children(parentId)
+      else
+        children(parentId) = List(particleId)
+
     }
   }
 
