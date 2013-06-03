@@ -24,7 +24,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     var particles = Array.fill[Particle](numParticles)(null)
     for (i <- 0 to numParticles-1) {
       val id = newAssignStoreId()
-      store.newParticle(id, -1)
+      store.newParticle(id, Constants.NoParent)
       particles(i) = new Particle(T, 1.0/numParticles, alpha, beta, rejuvSeq,
                                   store, id)
     }
