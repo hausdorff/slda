@@ -182,7 +182,10 @@ class AssignmentStore () {
   def newDocument (particleId: Int, newDocIndex: Int): Unit =
     assgMap.newDoc(particleId, newDocIndex)
 
-  /** Creates new particle */
+  /** Creates new particle.
+
+   If parent node exists, set its children to include current node. Always set
+   current node's parents to parentId*/
   def newParticle (particleId: Int, parentId: Int): Unit = {
     assgMap.newParticle(particleId)
     if (parentId > 0) {
@@ -191,7 +194,6 @@ class AssignmentStore () {
         children(parentId) = particleId :: children(parentId)
       else
         children(parentId) = List(particleId)
-
     }
   }
 
