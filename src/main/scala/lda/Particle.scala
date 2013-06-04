@@ -158,8 +158,9 @@ class AssignmentStore () {
     // if word assigned topic in current particle, return.
     // else recurse upwards.
     // if no parent entry for particleId, then error out.
-    if (assgMap.wordAssigned(particleId, docId, wordIdx))
+    if (assgMap.wordAssigned(particleId, docId, wordIdx)) {
       return assgMap.getTopic(particleId, docId, wordIdx)
+    }
     else {
       return getTopic(parent(particleId), docId, wordIdx)
     }
