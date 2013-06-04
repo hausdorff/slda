@@ -269,8 +269,6 @@ class Particle (val topics: Int, val initialWeight: Double,
   var globalVect = new GlobalUpdateVector(topics)
   var weight = initialWeight
   var currDocVect = new DocumentUpdateVector(topics)
-  // TODO: DELETE THIS
-  var rejuvSeqAssignments = HashMap[Int,Array[Int]]()
   var rejuvSeqDocVects = HashMap[Int,DocumentUpdateVector]()
 
   /** Generates an unnormalized weight for the particle; returns new wgt. NOTE:
@@ -296,10 +294,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
-      //val currAssignments = assgStore.setTopic(particleId, docId, idx,
-      //sampledTopic)
-      val currAssignments = rejuvSeqAssignments(docId)
-      currAssignments(idx) = sampledTopic
+      assgStore.setTopic(particleId, docId, idx, sampledTopic)
     }
     sampledTopic
   }
@@ -307,8 +302,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
-      //assgStore.newDocument(particleId, indexIntoSample)
-      rejuvSeqAssignments(indexIntoSample) = new Array[Int](doc.length)
+      assgStore.newDocument(particleId, indexIntoSample)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
   }
@@ -333,19 +327,13 @@ class Particle (val topics: Int, val initialWeight: Double,
   }
 
   /** Proper deep copy of the particle */
-  def copy (newAssgnStoreId: Int): Particle = {
+  def copy (newAssgStoreId: Int): Particle = {
     val copiedParticle = new Particle(topics, initialWeight, alpha, beta,
-                                      rejuvSeq, assgStore, newAssgnStoreId)
+                                      rejuvSeq, assgStore, newAssgStoreId)
     copiedParticle.globalVect = globalVect.copy
     copiedParticle.weight = weight
     copiedParticle.currDocVect = currDocVect.copy
-    // copy rejuvSeqAssignments
-    // TODO: DELETE THIS ALL, POSSIBLY THE WHOLE METHOD
-    rejuvSeqAssignments.foreach
-    { kv =>
-      val copiedVal = new Array[Int](kv._2.length);
-     copiedParticle.rejuvSeqAssignments(kv._1) = copiedVal;
-     Array.copy(kv._2, 0, copiedVal, 0, kv._2.length) }
+    assgStore.newParticle(newAssgStoreId, particleId)
     // copy rejuvSeqDocVects
     rejuvSeqDocVects.foreach { kv =>
       copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy() }
@@ -354,18 +342,14 @@ class Particle (val topics: Int, val initialWeight: Double,
 
   private def assignNewTopic (docIdx: Int, wordIdx: Int, newTopic: Int):
   Unit = {
-    //val oldTopic = assgStore.get(particleId, docIdx, wordIdx)
-    // also: DELETE THE FOLLOWING TWO LINES
-    var docTopics = rejuvSeqAssignments(docIdx)
-    val oldTopic = docTopics(wordIdx)
+    val oldTopic = assgStore.getTopic(particleId, docIdx, wordIdx)
     var docUpdateVect = rejuvSeqDocVects(docIdx)
     val doc = rejuvSeq.getSampleSet()(docIdx)
     val word = doc(wordIdx)
     // should use indices to decrement old topic counts?
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
-    //assgStore.setTopic(particleId, docIdx, wordIdx, newTopic)
-    docTopics(wordIdx) = newTopic
+    assgStore.setTopic(particleId, docIdx, wordIdx, newTopic)
   }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1});
@@ -424,10 +408,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     }
     val doc = rejuvSeq.getSampleSet()(docId)
     val word = doc(wordIdx)
-    //val priorTopic = assgStore.get(particleId, docId, wordIdx)
-    // TODO: REMOVE THE FOLLOWING TWO LINES
-    val docTopics = rejuvSeqAssignments(docId)
-    val priorTopic = docTopics(wordIdx)
+    val priorTopic = assgStore.getTopic(particleId, docId, wordIdx)
     val docVect = rejuvSeqDocVects(docId)
     val globalUpdate =
       (counterHelper(globalVect.numTimesWordAssignedTopic(word, topic),
