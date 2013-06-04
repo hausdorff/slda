@@ -228,8 +228,21 @@ class AssignmentMap () {
   def getTopic (particleId: Int, docId: Int, wordId: Int): Int =
     assgMap(particleId)(docId)(wordId)
 
-  def setTopic (particleId: Int, docId: Int, wordId: Int, topic: Int) =
-    assgMap(particleId)(docId)(wordId) = topic
+  /** Sets topic for a word in a document.
+
+   This method is tricky. `particleId` should always exist, because we will
+   have a constant number of particles at the outset. `docId` may not exist
+   in the assignment map for that particle though b/c documents are only added
+   when the child is modified and therefore different from the parent. `wordId`
+   will usually not be in the map for similar reasons. This method must add
+   both of these things */
+  def setTopic (particleId: Int, docId: Int, wordId: Int, topic: Int) = {
+    if (!assgMap(particleId).contains(docId))
+      assgMap(particleId) = HashMap(docId ->
+                                             HashMap[Int,Int](wordId -> topic))
+    else
+      assgMap(particleId)(docId)(wordId) = topic
+  }
 
   /** Builds new representation of topic assignments */
   def newDoc (particleId: Int, docId: Int): Unit =
