@@ -188,13 +188,13 @@ class AssignmentStore () {
    current node's parents to parentId*/
   def newParticle (particleId: Int, parentId: Int): Unit = {
     assgMap.newParticle(particleId)
-    if (parentId > 0) {
-      parent(particleId) = parentId
+    if (parentId != Constants.NoParent) {
       if (children contains parentId)
         children(parentId) = particleId :: children(parentId)
       else
         children(parentId) = List(particleId)
     }
+    parent(particleId) = parentId
   }
 
   /** Deletes or merges nodes that are "inactive." A node is inactive if it is
