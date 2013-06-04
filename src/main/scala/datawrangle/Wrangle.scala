@@ -48,7 +48,7 @@ object Io {
 /** Simple functions for processing text */
 object Text {
   val WHITESPACE = "\\s+"
-  
+
   /** Tokenizes a document, removing everything not a stopwords filter */
   def tokenize (s: String, filter: String => Boolean): Array[String] =
     s.split(WHITESPACE).filter(filter)
@@ -57,7 +57,7 @@ object Text {
   def stopWords (fname: String): Set[String] = {
     Io.fileToString(new File(fname)).split(WHITESPACE).toSet
   }
-  
+
   /** Converts documents into a single array of words
    *
    * Takes `docs`, our array of documents, breaks each doc into an array
@@ -133,7 +133,7 @@ object TNG {
     println("Words in first doc " + corpus(0).length)
     println("Vocabulary w filtering\t" + w.length)
     println("Vocabulary wo filtering\t" + wp.length)
-    
+
     val sim3 = Io.rawCorpus(DataConsts.SIM_3_TRAIN_DOCS)
     val rel3 = Io.rawCorpus(DataConsts.REL_3_TRAIN_DOCS)
     val diff3 = Io.rawCorpus(DataConsts.DIFF_3_TRAIN_DOCS)
