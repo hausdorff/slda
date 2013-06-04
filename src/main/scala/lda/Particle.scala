@@ -125,8 +125,8 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     (0 to numParticles-1).foreach {
       i =>
         val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
-      resampledParticles(i) =
-        particles(indexOfParticleToCopy).copy(newAssignStoreId())
+        resampledParticles(i) =
+          particles(indexOfParticleToCopy).copy(newAssignStoreId())
     }
     resampledParticles
   }
