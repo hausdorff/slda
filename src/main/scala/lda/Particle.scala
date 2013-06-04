@@ -13,8 +13,9 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      val numParticles: Int, val ess: Double,
                      val rejuvBatchSize: Int,
                      var rejuvSeq: ReservoirSampler[Array[String]]) {
+  var currId = 0  // NOTE: This must come before initParticles, otherwise it
+                  // resets the id count
   var (assgStore,particles) = initParticles()
-  var currId = 0
 
   /** Creates all the particles (requested by `numParticles` parameter), as
    as the corresponding entry in the AssignmentStore that tracks the topic
