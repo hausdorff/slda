@@ -7,6 +7,7 @@ import wrangle._
 import org.scalatest.FunSuite
 import java.util.{ Arrays => Arrays }
 import scala.collection.{ Set => Set }
+import scala.collection.mutable.{ HashMap => HashMap }
 import scala.util.{ Random => Random }
 
 
@@ -25,6 +26,29 @@ class ParticleTests extends FunSuite {
     ps
   }
 
+  // return  a `HashMap[Int,HashMap[Int,HashMap[Int,Int]]]`, but gross,
+  // I'm not putting that in the method signature
+  private def assgMap (lda: PfLda) =
+    lda.particles.assgStore.assgMap.assgMap
+
+  test("Test PfLda resampling with 1 particle") {
+    val topics = 5
+    val alpha = 0.1
+    val beta = 0.1
+    val smplSize = 6
+    val numParticles = 1
+    val ess = 200  // high enough that `shouldRejuvenate` mostly always trips,
+                   // as intended.
+    val rejuvBatchSize = 7
+    val rejuvMcmcSteps = 8
+    val pflda = new PfLda(topics, alpha, beta, smplSize, numParticles, ess,
+                          rejuvBatchSize, rejuvMcmcSteps)
+    assert(assgMap(pflda).size == 1)
+    pflda.ingestDoc("that")
+    println(assgMap(pflda))
+  }
+
+  /*
   test("AssignmentStore.getTopic") {
     var as = new AssignmentStore()
     as.newParticle(0, -1)
@@ -44,6 +68,7 @@ class ParticleTests extends FunSuite {
     as.newParticle(0, -1)
     as.newDocument(0, 0)
   }
+  */
 }
 
 class GlobalUpdateVectorTests extends FunSuite {
