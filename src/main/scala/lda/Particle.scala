@@ -158,7 +158,7 @@ class AssignmentStore () {
     // if word assigned topic in current particle, return.
     // else recurse upwards.
     // if no parent entry for particleId, then error out.
-    if (assgMap.wordAssigned(particleId, docId, wordIdx)) {
+    if (assgMap.wordChangedInParticle(particleId, docId, wordIdx)) {
       return assgMap.getTopic(particleId, docId, wordIdx)
     }
     else {
@@ -217,7 +217,8 @@ class AssignmentMap () {
 
   /** Checks to see if a particle contains a topic assignment for some word in
    some document */
-  def wordAssigned (particleId: Int, docId: Int, wordId: Int): Boolean = {
+  def wordChangedInParticle (particleId: Int, docId: Int, wordId: Int):
+  Boolean = {
     assgMap.contains(particleId) &&
     assgMap(particleId).contains(docId) &&
     assgMap(particleId)(docId).contains(wordId)
