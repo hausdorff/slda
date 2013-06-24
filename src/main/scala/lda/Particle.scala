@@ -2,6 +2,7 @@ package lda
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{ HashMap => HashMap }
+import scala.util.{ Random => Random }
 
 import globals.Constants
 import stream._
@@ -53,7 +54,28 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
                      docId: Int): Unit = {
     particles.foreach { particle =>
-      particle.transition(index, words, currVocabSize,docId) }
+      val particleId = particle.particleId;
+      println(particleId + " " + docId + " " + index)
+      printParticles()
+      val oldTopic = particle.assgStore.getTopic(particleId, docId, index)
+      particle.transition(index, words, currVocabSize,docId)
+      transitionChildren(words, particleId, docId, index, oldTopic) }
+  }
+
+  def transitionChildren (words: Array[String], particleId: Int, docId: Int,
+                          idx: Int, oldTopic: Int) = {
+    //if children have not set word, put that word in the old one and update counts
+    val word = words(idx)
+    if (assgStore.children.contains(particleId)) {
+      assgStore.children(particleId).foreach { childId =>
+        if (!assgStore.wordChangedInParticle(particleId, docId, idx)) {
+          val p = particles(childId)
+          p.globalVect.update(word, oldTopic)
+          p.currDocVect.update(word, oldTopic)
+
+        }
+      }
+    }
   }
 
   /** Performs update necessary for new document */
@@ -80,7 +102,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     // resample the particles;
     resample(particleWeightArray())
     // TODO: HACKY TIMING CODE, REMOVE LATER
-    println("\t" + (System.currentTimeMillis - now))
+    //println("\t" + (System.currentTimeMillis - now))
     // pick rejuvenation sequence in the reservoir
     rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
     uniformReweightAll()
@@ -125,10 +147,15 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     (0 to numParticles-1).foreach {
       i =>
         val indexOfParticleToCopy = Stats.sampleCategorical(weightsCdf)
+        val newIdx = newAssignStoreId()
         resampledParticles(i) =
-          particles(indexOfParticleToCopy).copy(newAssignStoreId())
+          particles(indexOfParticleToCopy).copy(newIdx)
     }
     resampledParticles
+  }
+
+  override def toString (): String = {
+    particles(0).docAssgs(0).mkString(" ")
   }
 }
 
@@ -166,21 +193,29 @@ class AssignmentStore () {
     }
   }
 
+  /** Checks to see if a particle contains a topic assignment for some word in
+   some document */
+  def wordChangedInParticle (particleId: Int, docId: Int, wordId: Int):
+  Boolean = {
+    assgMap.wordChangedInParticle(particleId, docId, wordId)
+  }
+
   /** Sets topic assignment for word at location wordIdx in document docId.
    Additionally, the old value is inserted into the child particles to maintain
-   consistency. Unlike `get` the parent are NOT affected. */
+   consistency. Note that the old value should be set in the children, unless
+   they've already been set, for consistency! Unlike `get` the parent are NOT
+   affected. */
   def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
   Unit = {
+    println("set " + " " + particleId + " " + docId + " " +  wordIdx + " " + topic)
+    val oldTopic = getTopic(particleId, docId, wordIdx)
     assgMap.setTopic(particleId, docId, wordIdx, topic)
-    if (children.contains(particleId)) {
-      children(particleId).foreach { childId =>
-        setTopic(childId, docId, wordIdx, topic)}
-    }
   }
 
   /** Creates new topic assignment vector for document */
-  def newDocument (particleId: Int, newDocIndex: Int): Unit =
-    assgMap.newDoc(particleId, newDocIndex)
+  def newDocument (particleId: Int, newDocIndex: Int, len: Int, topics: Int):
+  Unit =
+    assgMap.newDoc(particleId, newDocIndex, len, topics)
 
   /** Creates new particle.
 
@@ -226,8 +261,9 @@ class AssignmentMap () {
 
   /** Queries particle for topic assignment of a word in document; returns None
    if there is no such word in that document of that particle */
-  def getTopic (particleId: Int, docId: Int, wordId: Int): Int =
+  def getTopic (particleId: Int, docId: Int, wordId: Int): Int = {
     assgMap(particleId)(docId)(wordId)
+  }
 
   /** Sets topic for a word in a document.
 
@@ -246,8 +282,12 @@ class AssignmentMap () {
   }
 
   /** Builds new representation of topic assignments */
-  def newDoc (particleId: Int, docId: Int): Unit =
+  def newDoc (particleId: Int, docId: Int, len: Int, topics: Int): Unit = {
     assgMap(particleId)(docId) = HashMap[Int,Int]()
+    var r = new Random()
+    (0 until len).foreach {
+      w => assgMap(particleId)(docId)(w) = r.nextInt(topics) }
+  }
 
   def newParticle (particleId: Int): Unit =
     assgMap(particleId) = HashMap[Int,HashMap[Int,Int]]()
@@ -295,6 +335,7 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
+      val oldTopic = assgStore.getTopic(particleId, docId, idx)
       assgStore.setTopic(particleId, docId, idx, sampledTopic)
     }
     sampledTopic
@@ -303,7 +344,7 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
-      assgStore.newDocument(particleId, indexIntoSample)
+      assgStore.newDocument(particleId, indexIntoSample, doc.length, topics)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
   }
@@ -424,15 +465,18 @@ class Particle (val topics: Int, val initialWeight: Double,
     globalUpdate * docUpdate
   }
 
-  override def toString (): String = {
-    var outstr = "Particle assignments:\n"
-    // TODO: DELETE ALL OF THIS, replace with something akin to: (1) iterate
-    // through all the words in every document, (2) query each point in the
-    // assignment store, (3) print it out
-    rejuvSeqAssignments.foreach {
-      kv => outstr += "\t" + kv._1 + " -> " + kv._2.deep.mkString(" ") + "\n"
+  def docAssgs (docIdx: Int): Array[Int] = {
+    val assgs = new Array[Int](rejuvSeqDocVects(docIdx).wordsInDoc)
+    for (i <- 0 to assgs.size-1) {
+      assgs(i) = assgStore.getTopic(particleId, docIdx, i)
     }
-    outstr
+    assgs
+  }
+
+  override def toString(): String = {
+    var s = "particle: "
+    rejuvSeqDocVects.foreach { kv => s += docAssgs(kv._1).deep.mkString(" ")}
+    s
   }
 }
 
@@ -495,6 +539,8 @@ class GlobalUpdateVector (val topics: Int) {
   }
 
   def resampledUpdate (word: String, oldTopic: Int, newTopic: Int): Unit = {
+    //println(word + " " + oldTopic)
+    //println(timesWordAssignedTopic)
     if (timesWordAssignedTopic((word, oldTopic)) == 1)
       timesWordAssignedTopic.remove((word, oldTopic))
     else timesWordAssignedTopic((word, oldTopic)) -= 1
