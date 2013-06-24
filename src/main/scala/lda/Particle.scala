@@ -211,9 +211,12 @@ class AssignmentStore () {
   }
 
   /** Creates new topic assignment vector for document */
-  def newDocument (particleId: Int, newDocIndex: Int, len: Int, topics: Int):
+  def newDocument (particleId: Int, newDocIndex: Int, doc: Array[String],
+                   topics: Int, globalVect: GlobalUpdateVector,
+                   currDocVect: DocumentUpdateVector):
   Unit =
-    assgMap.newDoc(particleId, newDocIndex, len, topics)
+    assgMap.newDoc(particleId, newDocIndex, doc, topics, globalVect,
+                 currDocVect)
 
   /** Creates new particle.
 
@@ -280,11 +283,18 @@ class AssignmentMap () {
   }
 
   /** Builds new representation of topic assignments */
-  def newDoc (particleId: Int, docId: Int, len: Int, topics: Int): Unit = {
+  def newDoc (particleId: Int, docId: Int, doc: Array[String], topics: Int,
+              globalVect: GlobalUpdateVector,
+              currDocVect: DocumentUpdateVector): Unit = {
     assgMap(particleId)(docId) = HashMap[Int,Int]()
     var r = new Random()
-    (0 until len).foreach {
-      w => setTopic(particleId, docId, w, r.nextInt(topics)) }
+    (0 until doc.length).foreach {
+      wid =>
+        val newTopic = r.nextInt(topics)
+        setTopic(particleId, docId, wid, newTopic)
+        globalVect.update(doc(wid), newTopic)
+        currDocVect.update(doc(wid), newTopic)
+    }
   }
 
   def newParticle (particleId: Int): Unit =
@@ -342,7 +352,8 @@ class Particle (val topics: Int, val initialWeight: Double,
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
     currDocVect = new DocumentUpdateVector(topics)
     if (indexIntoSample != Constants.DidNotAddToSampler) {
-      assgStore.newDocument(particleId, indexIntoSample, doc.length, topics)
+      assgStore.newDocument(particleId, indexIntoSample, doc, topics,
+                          globalVect, currDocVect)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
   }
