@@ -40,12 +40,15 @@ class ParticleTests extends FunSuite {
     val ess = 200  // high enough that `shouldRejuvenate` mostly always trips,
                    // as intended.
     val rejuvBatchSize = 7
-    val rejuvMcmcSteps = 8
+    val rejuvMcmcSteps = 2
     val pflda = new PfLda(topics, alpha, beta, smplSize, numParticles, ess,
                           rejuvBatchSize, rejuvMcmcSteps)
-    assert(assgMap(pflda).size == 1)
-    pflda.ingestDoc("that")
-    println(assgMap(pflda))
+    /*
+    pflda.ingestDocs(Array("that with which have from this they were their said them",
+                           "your what could other than some very time upon about such"))
+    */
+    pflda.ingestDocs(Array("that with", "which have"))
+    pflda.printTopics()
   }
 
   /*
