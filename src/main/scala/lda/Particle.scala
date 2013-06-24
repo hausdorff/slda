@@ -286,7 +286,7 @@ class AssignmentMap () {
     assgMap(particleId)(docId) = HashMap[Int,Int]()
     var r = new Random()
     (0 until len).foreach {
-      w => assgMap(particleId)(docId)(w) = r.nextInt(topics) }
+      w => setTopic(particleId, docId, w, r.nextInt(topics)) }
   }
 
   def newParticle (particleId: Int): Unit =
