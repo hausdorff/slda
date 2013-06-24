@@ -55,7 +55,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      docId: Int): Unit = {
     particles.foreach { particle =>
       val particleId = particle.particleId;
-      println(particleId + " " + docId + " " + index)
       printParticles()
       val oldTopic = particle.assgStore.getTopic(particleId, docId, index)
       particle.transition(index, words, currVocabSize,docId)
@@ -207,7 +206,6 @@ class AssignmentStore () {
    affected. */
   def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
   Unit = {
-    println("set " + " " + particleId + " " + docId + " " +  wordIdx + " " + topic)
     val oldTopic = getTopic(particleId, docId, wordIdx)
     assgMap.setTopic(particleId, docId, wordIdx, topic)
   }
