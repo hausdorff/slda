@@ -54,11 +54,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
                      docId: Int): Unit = {
     particles.foreach { particle =>
-      val particleId = particle.particleId;
-      printParticles()
-      val oldTopic = particle.assgStore.getTopic(particleId, docId, index)
       particle.transition(index, words, currVocabSize,docId)
-      transitionChildren(words, particleId, docId, index, oldTopic) }
   }
 
   def transitionChildren (words: Array[String], particleId: Int, docId: Int,
@@ -71,7 +67,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
           val p = particles(childId)
           p.globalVect.update(word, oldTopic)
           p.currDocVect.update(word, oldTopic)
-
         }
       }
     }
@@ -206,7 +201,6 @@ class AssignmentStore () {
    affected. */
   def setTopic (particleId: Int, docId: Int, wordIdx: Int, topic: Int):
   Unit = {
-    val oldTopic = getTopic(particleId, docId, wordIdx)
     assgMap.setTopic(particleId, docId, wordIdx, topic)
   }
 
@@ -287,14 +281,6 @@ class AssignmentMap () {
               globalVect: GlobalUpdateVector,
               currDocVect: DocumentUpdateVector): Unit = {
     assgMap(particleId)(docId) = HashMap[Int,Int]()
-    var r = new Random()
-    (0 until doc.length).foreach {
-      wid =>
-        val newTopic = r.nextInt(topics)
-        setTopic(particleId, docId, wid, newTopic)
-        globalVect.update(doc(wid), newTopic)
-        currDocVect.update(doc(wid), newTopic)
-    }
   }
 
   def newParticle (particleId: Int): Unit =
@@ -343,7 +329,6 @@ class Particle (val topics: Int, val initialWeight: Double,
     currDocVect.update(word, sampledTopic)
 
     if (docId != Constants.DidNotAddToSampler) {
-      val oldTopic = assgStore.getTopic(particleId, docId, idx)
       assgStore.setTopic(particleId, docId, idx, sampledTopic)
     }
     sampledTopic
@@ -383,14 +368,19 @@ class Particle (val topics: Int, val initialWeight: Double,
                                       rejuvSeq, assgStore, newAssgStoreId)
     copiedParticle.globalVect = globalVect.copy
     copiedParticle.weight = weight
+    val tmpCurrDocVect = currDocVect
     copiedParticle.currDocVect = currDocVect.copy
     assgStore.newParticle(newAssgStoreId, particleId)
     // copy rejuvSeqDocVects
     rejuvSeqDocVects.foreach { kv =>
-      copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy() }
+      if (kv._2 == tmpCurrDocVect)
+        copiedParticle.rejuvSeqDocVects(kv._1) = copiedParticle.currDocVect
+      else
+        copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy()}
     copiedParticle
   }
 
+  /** Assigns new topics to RESAMPLED words */
   private def assignNewTopic (docIdx: Int, wordIdx: Int, newTopic: Int):
   Unit = {
     val oldTopic = assgStore.getTopic(particleId, docIdx, wordIdx)
