@@ -18,6 +18,12 @@ object Io {
     else files
   }
 
+  def makeDirIfNE (dir: String): Unit = {
+    val f = new File(dir)
+    if (!f.exists())
+      f.mkdir()
+  }
+
   /** Transforms contents of a file into a single String */
   def fileToString (f: java.io.File): String = Source.fromFile(f).mkString
 
@@ -97,6 +103,7 @@ object Text {
 }
 
 object DataConsts {
+  val RESULTS_DIR = "results/"
   val DATA_DIR = "data/"
   val TNG_TRAIN_DIR = DATA_DIR + "20news-bydate-train/"
   val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
