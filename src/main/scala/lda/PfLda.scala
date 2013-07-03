@@ -1,5 +1,6 @@
 package lda
 
+import java.io.PrintWriter
 import scala.collection.mutable.{ HashMap => HashMap }
 import scala.util.{ Random => Random }
 
@@ -105,6 +106,32 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       vocabToId(word) = currVocabSize
       currVocabSize += 1
     }
+  }
+
+  def writeTopics (filename: String): Unit = {
+    println("WRITE TOPICS")
+    val wrdWIdx = vocabToId.toArray[(String,Int)]
+    val particleObjs = particles.particles
+    val pw = new PrintWriter(filename)
+
+    for (p <- 0 to particleObjs.length-1) {
+      pw.write("PARTICLE " + p + "\n")
+      val countVctr = particleObjs(p).globalVect
+      for (t <- 0 to T-1) {
+        val percs = new Array[(Double,String)](wrdWIdx.size)
+        for (i <- 0 to wrdWIdx.size-1) {
+          // grab each word, compute how much it comprises a given topic
+          val (w,id) = wrdWIdx(i)
+          val prctg = countVctr.numTimesWordAssignedTopic(w, t).toDouble /
+            countVctr.numTimesTopicAssignedTotal(t)
+          percs(i) = (prctg, w);
+        }
+        pw.write("topic " + t + "\n")
+        pw.write("\t" + percs.sorted.reverse.deep.mkString("\n\t") + "\n")
+      }
+      pw.write("\n")
+    }
+    pw.close()
   }
 
   // print total percentage a word as it occurs in each particular topic
