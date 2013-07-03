@@ -23,12 +23,14 @@ object RunLda {
                           Sim3PfParams.rejuvMcmcSteps)
 
     println("running model...")
+    println("DOCUMENT\t\t\tTIME CONSUMPTION PER WORD (MILLISECONDS)")
     for (i <- 0 to corpus.length-1) {
-      val now = System.nanoTime
+      print(i + " / " + corpus.length)
+      //val now = System.nanoTime
       //println("doc " + i + " / " + (corpus.length-1))
       model.ingestDoc(corpus(i))
       // TODO: REMOVE HACKY TIMING CODE FOR BENCHMARKING IMPROVEMENTS
-      println(i + " " + (System.nanoTime - now))
+      //println(i + " " + (System.nanoTime - now))
     }
   }
 }

@@ -92,11 +92,11 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
 
   /** Prepares to perform, and performs rejuvenation MCMC step */
   def rejuvenate (wordIds: Array[(Int,Int)], currVocabSize: Int): Unit = {
-    val now = System.currentTimeMillis
-    // resample the particles;
+    //val now = System.currentTimeMillis
     resample(particleWeightArray())
     // TODO: HACKY TIMING CODE, REMOVE LATER
     //println("\t" + (System.currentTimeMillis - now))
+
     // pick rejuvenation sequence in the reservoir
     rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
     uniformReweightAll()
