@@ -109,10 +109,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   }
 
   def writeTopics (filename: String): Unit = {
+    Io.makeDirIfNE(DataConsts.RESULTS_DIR)
     println("WRITE TOPICS")
     val wrdWIdx = vocabToId.toArray[(String,Int)]
     val particleObjs = particles.particles
-    val pw = new PrintWriter(filename)
+    val pw = new PrintWriter(DataConsts.RESULTS_DIR + filename)
 
     for (p <- 0 to particleObjs.length-1) {
       pw.write("PARTICLE " + p + "\n")
