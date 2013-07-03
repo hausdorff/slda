@@ -48,7 +48,8 @@ class ParticleTests extends FunSuite {
                            "your what could other than some very time upon about such"))
     */
     pflda.ingestDocs(Array("that with", "which have"))
-    pflda.printTopics()
+    //pflda.printTopics()
+    pflda.writeTopics("results.txt")
   }
 
   /*
@@ -189,9 +190,11 @@ class PfLdaTests extends FunSuite {
     val beta = 0.1
     val sampleSize = 16
     val numParticles = 5
-    val ess = 20
-    val rejuvBatchSize = 256
-    val rejuvMcmcSteps = 512
+    val ess = 2
+    //val rejuvBatchSize = 256
+    val rejuvBatchSize = 100
+    //val rejuvMcmcSteps = 512
+    val rejuvMcmcSteps = 20
     var pflda = new lda.PfLda(topics, alpha, beta, sampleSize,
                               numParticles, ess, rejuvBatchSize,
                               rejuvMcmcSteps)
@@ -233,7 +236,9 @@ class PfLdaTests extends FunSuite {
     }
 
     //pflda.printParticles
-    pflda.printTopics
+    //pflda.printTopics
+    pflda.writeTopics("results.txt")
+
   }
 
 }
