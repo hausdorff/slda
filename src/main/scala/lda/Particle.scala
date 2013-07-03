@@ -87,6 +87,8 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   def shouldRejuvenate (): Boolean = {
     val weights = particleWeightArray()
     val statistic = 1/math.pow(Math.norm(weights, 2), 2)
+    // NOTE: this is useful for tuning the ESS threshold
+    //println(statistic + " " + ess)
     statistic <= ess
   }
 
