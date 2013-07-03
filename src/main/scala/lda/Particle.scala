@@ -272,9 +272,7 @@ class AssignmentMap () {
    will usually not be in the map for similar reasons. This method must add
    both of these things */
   def setTopic (particleId: Int, docId: Int, wordId: Int, topic: Int) = {
-    if (!assgMap.contains(particleId))
-      assgMap(particleId) = HashMap(docId ->HashMap[Int,Int](wordId -> topic))
-    else if (!assgMap(particleId).contains(docId))
+    if (!assgMap(particleId).contains(docId))
       assgMap(particleId)(docId) = HashMap[Int,Int](wordId -> topic)
     else
       assgMap(particleId)(docId)(wordId) = topic
