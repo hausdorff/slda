@@ -105,7 +105,10 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   /** performs rejuvenation MCMC step for every particle */
   def rejuvenateAll (wordIds: Array[(Int,Int)], batchSize: Int,
                      currVocabSize: Int): Unit = {
-    particles.foreach { p => p.rejuvenate(wordIds, batchSize, currVocabSize) }
+    particles.foreach {
+      p =>
+        p.rejuvenate(wordIds, batchSize, currVocabSize)
+                     }
   }
 
   /** Helper method puts the weights of particles into an array, so that
@@ -269,9 +272,10 @@ class AssignmentMap () {
    will usually not be in the map for similar reasons. This method must add
    both of these things */
   def setTopic (particleId: Int, docId: Int, wordId: Int, topic: Int) = {
-    if (!assgMap(particleId).contains(docId))
-      assgMap(particleId) = HashMap(docId ->
-                                             HashMap[Int,Int](wordId -> topic))
+    if (!assgMap.contains(particleId))
+      assgMap(particleId) = HashMap(docId ->HashMap[Int,Int](wordId -> topic))
+    else if (!assgMap(particleId).contains(docId))
+      assgMap(particleId)(docId) = HashMap[Int,Int](wordId -> topic)
     else
       assgMap(particleId)(docId)(wordId) = topic
   }
