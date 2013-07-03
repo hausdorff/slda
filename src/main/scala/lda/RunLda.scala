@@ -32,5 +32,6 @@ object RunLda {
       // TODO: REMOVE HACKY TIMING CODE FOR BENCHMARKING IMPROVEMENTS
       //println(i + " " + (System.nanoTime - now))
     }
+    model.writeTopics("results.txt")
   }
 }
