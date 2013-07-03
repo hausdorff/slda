@@ -473,6 +473,14 @@ class Particle (val topics: Int, val initialWeight: Double,
     assgs
   }
 
+  /** Note that docId is the index into the reservoir sampler! */
+  def docAssgsToArray(docId: Int, length: Int): Array[Int] = {
+    var a = new Array[Int](length)
+    for (i <- 0 until length)
+      a(i) = assgStore.getTopic(particleId, docId, i)
+    a
+  }
+
   override def toString(): String = {
     var s = "particle: "
     rejuvSeqDocVects.foreach { kv => s += docAssgs(kv._1).deep.mkString(" ")}
