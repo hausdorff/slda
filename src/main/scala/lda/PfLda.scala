@@ -47,7 +47,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
     val now = System.currentTimeMillis
     (0 to Words.length-1).foreach{ i => processWord(i, Words, docId) }
     if (Words.length != 0)
-      println("\t\t\t" + ((System.currentTimeMillis - now)/Words.length))
+      print("\t\t\t" + ((System.currentTimeMillis - now)/Words.length))
+    println()
     docId
   }
 
