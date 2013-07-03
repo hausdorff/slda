@@ -185,6 +185,9 @@ class PfLdaTests extends FunSuite {
   }
 
   def standardPfLda (): PfLda = {
+    // IMPORTANT NOTE: THESE SETTINGS RESULT IN VERY REASONABLE ASSIGNMENTS
+    // ON AVERAGE. THERE IS NO PRINCIPLED REASON TO HAVE CHOSEN THEM THIS
+    // WAY, EXCEPT TRIAL AND ERROR!
     val topics = 2
     val alpha = 0.1
     val beta = 0.1
