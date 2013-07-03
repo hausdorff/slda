@@ -54,17 +54,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
   def transitionAll (index: Int, words: Array[String], currVocabSize: Int,
                      docId: Int): Unit = {
     particles.foreach { particle =>
-      println("TRANSITION: ")
-      print("\t"); println("asgstore\t\t\t" + particle.assgStore.assgMap.assgMap)
-      //print("\t"); println(particle.currDocVect.timesTopicOccursInDoc.deep)
-      print("\t"); println("words assigned topic\t\t" + particle.globalVect.timesWordAssignedTopic)
-      print("\t"); println("times topic assgnd total\t" + particle.globalVect.timesTopicAssignedTotal.deep)
-      particle.transition(index, words, currVocabSize,docId)
-      print("\t"); println("asgstore\t\t\t" + particle.assgStore.assgMap.assgMap)
-      //print("\t"); println(particle.currDocVect.timesTopicOccursInDoc.deep)
-      print("\t"); println("words assigned topic\t\t" + particle.globalVect.timesWordAssignedTopic)
-      print("\t"); println("times topic assgnd total\t" + particle.globalVect.timesTopicAssignedTotal.deep)
-                     }
+      particle.transition(index, words, currVocabSize,docId) }
   }
 
   def transitionChildren (words: Array[String], particleId: Int, docId: Int,
@@ -90,7 +80,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
 
   /** Resamples particles proportional to their probability */
   def resample (unnormalizedWeights: Array[Double]): Unit = {
-    println("RESAMPLE: ")
     particles = multinomialResample(unnormalizedWeights)
   }
 
@@ -109,7 +98,6 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
     // TODO: HACKY TIMING CODE, REMOVE LATER
     //println("\t" + (System.currentTimeMillis - now))
     // pick rejuvenation sequence in the reservoir
-    println("REJUVENATE: ")
     rejuvenateAll(wordIds, rejuvBatchSize, currVocabSize)
     uniformReweightAll()
   }
@@ -119,18 +107,7 @@ class ParticleStore (val T: Int, val alpha: Double, val beta: Double,
                      currVocabSize: Int): Unit = {
     particles.foreach {
       p =>
-        print("\t"); println(p.assgStore.assgMap.assgMap);
-        //print("\t"); println(p.currDocVect.timesTopicOccursInDoc.deep);
-        print("\t"); println("words assigned topic\t\t" + p.globalVect.timesWordAssignedTopic)
-        print("\t"); println("times topic assgnd total\t" + p.globalVect.timesTopicAssignedTotal.deep)
-
-        p.rejuvenate(wordIds, batchSize, currVocabSize)
-
-        print("\t"); println(p.assgStore.assgMap.assgMap);
-        //print("\t"); println(p.currDocVect.timesTopicOccursInDoc.deep);
-        print("\t"); println("words assigned topic\t\t" + p.globalVect.timesWordAssignedTopic)
-        print("\t"); println("times topic assgnd total\t" + p.globalVect.timesTopicAssignedTotal.deep)
-                     }
+        p.rejuvenate(wordIds, batchSize, currVocabSize) }
   }
 
   /** Helper method puts the weights of particles into an array, so that
@@ -412,14 +389,6 @@ class Particle (val topics: Int, val initialWeight: Double,
     val doc = rejuvSeq.getSampleSet()(docIdx)
     val word = doc(wordIdx)
     // should use indices to decrement old topic counts?
-    println("\n\tdocIdx: " + docIdx)
-    println("\twordIdx: " + wordIdx)
-    println("\tparticle: " + particleId)
-    println("\toldTopic: " + oldTopic)
-  println("\tnewTopic: " + newTopic)
-    print("\t"); println("asgstore\t\t\t" + assgStore.assgMap.assgMap)
-    print("\t"); println("words assigned topic\t\t" + globalVect.timesWordAssignedTopic)
-    print("\t"); println("times topic assgnd total\t" + globalVect.timesTopicAssignedTotal.deep)
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
     assgStore.setTopic(particleId, docIdx, wordIdx, newTopic)
@@ -533,10 +502,6 @@ class DocumentUpdateVector (val topics: Int) {
   def resampledUpdate (wordIdx: Int, oldTopic: Int, newTopic: Int): Unit = {
     timesTopicOccursInDoc(oldTopic) -= 1
     timesTopicOccursInDoc(newTopic) += 1
-    //println("resampledUpdate wordIdx  " + wordIdx)
-    //println("resampledUpdate oldTopic " + oldTopic)
-    //println("resampledUpdate newTopic " + newTopic)
-    //println(timesTopicOccursInDoc.deep);
   }
 
   /** proper deep copy of DocumentUpdateVector */
