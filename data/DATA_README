@@ -1,0 +1,11 @@
+The 20 Newgroups (news-20) corpus contains ~20,000 messages taken from 20 Usenet newsgroups. There are about 1000 messages from each group. The subsets of this dataset we ran our experiments are defined as:
+
+* subset-20: consists of 100 documents sampled randomly from each of the 20 newsgroups;
+* sim-3: consists of 3 newsgroups on similar topics (comp.graphics, comp.os.ms-windows.misc, comp.windows.x) with significant overlap between clusters due to cross-posting;
+* rel-3: consists of 3 newsgroups on related topics (talk.politics.misc, talk.politics.guns, talk.politics.mideast);
+* diff-3: consists of articles posted in 3 newsgroups that cover different topics (alt.atheism, rec.sport.baseball, sci.space) with well-separated clusters.
+
+We also evaluated based on a to datasets from Slashdot. Therea re about 1000 articles primarily tagged with the category label, with articles cross-posted to multiple categories having been removed:
+
+* slash-7 contains 6714 news articles posted to 7 Slashdot categories: Business, Education, Enter- tainment, Games, Music, Science and Internet.
+* slash-6 contains 5182 articles posted to the 6 cate- gories: Biotech, Microsoft, Privacy, Google, Secu- rity, Space.
