@@ -107,6 +107,7 @@ object DataConsts {
   val DATA_DIR = "data/"
   val TNG_TRAIN_DIR = DATA_DIR + "20news-bydate-train/"
   val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
+  val TNG_STOP_WORDS = DATA_DIR + "TNG_STOP_WORDS"
   val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
   val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
                               "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
