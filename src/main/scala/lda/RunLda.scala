@@ -7,9 +7,9 @@ object Sim3PfParams {
   val beta = 0.1
   val smplSize = 2980
   val numParticles = 100
-  val ess = 20
-  val rejuvBatchSize = 30
-  val rejuvMcmcSteps = 1000
+  val ess = 2
+  val rejuvBatchSize = 50
+  val rejuvMcmcSteps = 20
 }
 
 object RunLda {
