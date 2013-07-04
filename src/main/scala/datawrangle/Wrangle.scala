@@ -25,7 +25,7 @@ object Io {
   }
 
   /** Transforms contents of a file into a single String */
-  def fileToString (f: java.io.File): String = Source.fromFile(f).mkString
+  def fileToString (f: java.io.File): String = Source.fromFile(f, "MacRoman").mkString
 
   /** Returns all files in corpus as an array of Strings */
   def rawCorpus (dir: String): Array[String] = {
