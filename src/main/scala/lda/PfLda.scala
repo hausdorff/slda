@@ -34,7 +34,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   private def simpleFilter (str: String): Boolean = {
     val patt = new Regex("\\W");
-    (patt.findAllIn(str).size == 0) && !Blacklist(str)
+    (patt.findAllIn(str).size == 0) && !Blacklist(str.toLowerCase)
   }
 
   /** Ingests set of documents, updating LDA run as we go */
