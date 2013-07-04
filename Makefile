@@ -2,8 +2,8 @@ compile:
 	@/export/apps/sbt-0.12.1/bin/sbt compile
 
 cleanup:
-	@rm core.*
-	@rm slda.o*
+	$(@./cleanup)
 
 run: compile cleanup
-	./run_coe.sh
+	@echo "RUNNING PROJECT"
+	qsub coe-qsub-job.sh
