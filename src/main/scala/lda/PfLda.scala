@@ -2,6 +2,7 @@ package lda
 
 import java.io.PrintWriter
 import scala.collection.mutable.{ HashMap => HashMap }
+import scala.util.matching.Regex
 import scala.util.{ Random => Random }
 
 import globals.Constants
@@ -22,7 +23,7 @@ import wrangle._
 class PfLda (val T: Int, val alpha: Double, val beta: Double,
              val smplSize: Int, val numParticles: Int, ess: Double,
              val rejuvBatchSize: Int, val rejuvMcmcSteps: Int) {
-  val Whitelist = Text.stopWords(DataConsts.TNG_WHITELIST)
+  val Blacklist = Text.stopWords(DataConsts.TNG_STOP_WORDS)
   var vocabToId = HashMap[String,Int]()
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
@@ -30,6 +31,11 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
 
   var particles = new ParticleStore(T, alpha, beta, numParticles, ess,
                                     rejuvBatchSize, rejuvSeq)
+
+  private def simpleFilter (str: String): Boolean = {
+    val patt = new Regex("\\W");
+    (patt.findAllIn(str).size == 0) && !Blacklist(str)
+  }
 
   /** Ingests set of documents, updating LDA run as we go */
   def ingestDocs (docs: Array[String]): Unit =
@@ -42,7 +48,7 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
    * lies below a certain threshold, we resample the topics
    */
   def ingestDoc(doc: String): Int = {
-    val Words = Text.bow(doc, (str: String) => Whitelist(str))
+    val Words = Text.bow(doc, (str: String) => simpleFilter(str))
 
     val docId = newDocumentUpdate(Words) // happen before processing word!
     val now = System.currentTimeMillis
