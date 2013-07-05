@@ -28,6 +28,8 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
   var currWordIdx = 0
+  var nmiStore = List[(Int, () => Int)]()
+  var nextDocId = 0
 
   var particles = new ParticleStore(T, alpha, beta, numParticles, ess,
                                     rejuvBatchSize, rejuvSeq)
@@ -57,6 +59,18 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
       print("\t\t\t" + ((System.currentTimeMillis - now)/Words.length))
     println()
     docId
+  }
+
+  /** Produces list [(document id, our assignment)] */
+  def addToNmiStore (docId: Int): Unit = {
+    if (docId == Constants.DidNotAddToSampler) {
+      val label = 10  // TODO: FILL THIS IN
+      nmiStore = nmiStore :+ (nextDocId, () => label)
+    }
+    else {
+      nmiStore = nmiStore :+ (nextDocId, () => 99)  // TODO: PUT FN CALL HERE
+    }
+    nextDocId += 1
   }
 
   /** Process the ith entry in `words`; copied pretty much verbatim from
