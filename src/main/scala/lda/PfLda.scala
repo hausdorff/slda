@@ -28,8 +28,6 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   var rejuvSeq = new ReservoirSampler[Array[String]](smplSize)
   var currVocabSize = 0
   var currWordIdx = 0
-  var nmiStore = List[(Int, () => Int)]()
-  var nextDocId = 0
 
   var particles = new ParticleStore(T, alpha, beta, numParticles, ess,
                                     rejuvBatchSize, rejuvSeq)
@@ -52,25 +50,14 @@ class PfLda (val T: Int, val alpha: Double, val beta: Double,
   def ingestDoc (doc: String): Int = {
     val Words = Text.bow(doc, (str: String) => simpleFilter(str))
 
-    val docId = newDocumentUpdate(Words) // happen before processing word!
+    val docIdx = newDocumentUpdate(Words) // happen before processing word!
     val now = System.currentTimeMillis
-    (0 to Words.length-1).foreach{ i => processWord(i, Words, docId) }
+    (0 to Words.length-1).foreach{ i => processWord(i, Words, docIdx) }
     if (Words.length != 0)
       print("\t\t\t" + ((System.currentTimeMillis - now)/Words.length))
     println()
-    docId
-  }
 
-  /** Produces list [(document id, our assignment)] */
-  def addToNmiStore (docId: Int): Unit = {
-    if (docId == Constants.DidNotAddToSampler) {
-      val label = 10  // TODO: FILL THIS IN
-      nmiStore = nmiStore :+ (nextDocId, () => label)
-    }
-    else {
-      nmiStore = nmiStore :+ (nextDocId, () => 99)  // TODO: PUT FN CALL HERE
-    }
-    nextDocId += 1
+    docIdx
   }
 
   /** Process the ith entry in `words`; copied pretty much verbatim from
