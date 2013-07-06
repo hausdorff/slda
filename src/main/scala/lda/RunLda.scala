@@ -35,6 +35,7 @@ object RunLda {
     }
     model.writeTopics("results.txt")
 
-    Evaluation.nmi(model, labels, wrangle.DataConsts.SIM_3_LABELS)
+    val mis = Evaluation.nmi(model, labels, wrangle.DataConsts.SIM_3_LABELS)
+    println(mis.deep)
   }
 }
