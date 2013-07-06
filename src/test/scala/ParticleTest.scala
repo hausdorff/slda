@@ -47,7 +47,7 @@ class ParticleTests extends FunSuite {
     pflda.ingestDocs(Array("that with which have from this they were their said them",
                            "your what could other than some very time upon about such"))
     */
-    pflda.ingestDocs(Array("that with", "which have"))
+    pflda.ingestDocs(Array("foo bar", "baz bat"))
     //pflda.printTopics()
     pflda.writeTopics("results.txt")
   }
