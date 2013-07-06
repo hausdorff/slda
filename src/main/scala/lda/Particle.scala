@@ -1,6 +1,7 @@
 package lda
 
 import scala.annotation.tailrec
+import scala.collection.mutable.{ ArrayBuffer => ArrayBuffer }
 import scala.collection.mutable.{ HashMap => HashMap }
 import scala.util.{ Random => Random }
 
@@ -308,6 +309,9 @@ class Particle (val topics: Int, val initialWeight: Double,
   var weight = initialWeight
   var currDocVect = new DocumentUpdateVector(topics)
   var rejuvSeqDocVects = HashMap[Int,DocumentUpdateVector]()
+  var docLabels = ArrayBuffer[Int]()  // labels for all the documents
+  var rsIdxToLabelsIdx = HashMap[Int,Int]()  // resvr sample -> docLabels idx
+  var nextDocId = 0
 
   /** Generates an unnormalized weight for the particle; returns new wgt. NOTE:
    side-effects on the particle's weight as well! */
@@ -324,17 +328,29 @@ class Particle (val topics: Int, val initialWeight: Double,
    Behind the scenes, this requires two updates: first, we must update the
    global and document-specific update vectors, and then we must update the
    topic assignments if this document happens to be in our reservoir. */
-  def transition (idx: Int, words: Array[String], w: Int, docId: Int): Int = {
+  def transition (idx: Int, words: Array[String], w: Int, docIdx: Int): Int = {
     val word = words(idx)
     val cdf = updatePosterior(word, w)
     val sampledTopic = Stats.sampleCategorical(cdf)
     globalVect.update(word, sampledTopic)
     currDocVect.update(word, sampledTopic)
 
-    if (docId != Constants.DidNotAddToSampler) {
-      assgStore.setTopic(particleId, docId, idx, sampledTopic)
+    if (docIdx != Constants.DidNotAddToSampler) {
+      assgStore.setTopic(particleId, docIdx, idx, sampledTopic)
     }
+
+    // set the label of the document
+    var mx = 0
+    for (t <- 0 until topics) {
+      if (currDocVect.timesTopicOccursInDoc(t) > mx)
+        mx = t
+    }
+    docLabels(nextDocId - 1) = mx
+
     sampledTopic
+  }
+
+  def setMaxLabel (docIdx: Int): Unit = {
   }
 
   def newDocumentUpdate (indexIntoSample: Int, doc: Array[String]): Unit = {
@@ -344,6 +360,14 @@ class Particle (val topics: Int, val initialWeight: Double,
                           globalVect, currDocVect)
       rejuvSeqDocVects(indexIntoSample) = currDocVect
     }
+
+    docLabels += -1
+    // this will be used to update counts of the document as we go
+    if (indexIntoSample != Constants.DidNotAddToSampler) {
+      rsIdxToLabelsIdx(indexIntoSample) = nextDocId
+    }
+
+    nextDocId += 1
   }
 
   /** Rejuvenates particle by MCMC; we currently repeat the update step
@@ -380,6 +404,12 @@ class Particle (val topics: Int, val initialWeight: Double,
         copiedParticle.rejuvSeqDocVects(kv._1) = copiedParticle.currDocVect
       else
         copiedParticle.rejuvSeqDocVects(kv._1) = rejuvSeqDocVects(kv._1).copy()}
+    for (e <- docLabels)
+      copiedParticle.docLabels += e
+    rsIdxToLabelsIdx.foreach { kv =>
+      copiedParticle.rsIdxToLabelsIdx(kv._1) = rsIdxToLabelsIdx(kv._1) }
+    copiedParticle.rsIdxToLabelsIdx
+    copiedParticle.nextDocId = nextDocId
     copiedParticle
   }
 
@@ -394,6 +424,15 @@ class Particle (val topics: Int, val initialWeight: Double,
     globalVect.resampledUpdate(word, oldTopic, newTopic)
     docUpdateVect.resampledUpdate(wordIdx, oldTopic, newTopic)
     assgStore.setTopic(particleId, docIdx, wordIdx, newTopic)
+
+    // set document label if it changes
+    val labelId = rsIdxToLabelsIdx(docIdx)
+    var mx = 0
+    for (t <- 0 until topics) {
+      if (docUpdateVect.timesTopicOccursInDoc(t) > mx)
+        mx = t
+    }
+    docLabels(labelId) = mx
   }
 
   /** Results in a number proportional to P(w_i|z_{i-1}, w_{i-1});
