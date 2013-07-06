@@ -114,6 +114,8 @@ object DataConsts {
   val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
   val TNG_STOP_WORDS = DATA_DIR + "TNG_STOP_WORDS"
   val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
+  val SIM_3_LABELS = List("comp.graphics", "comp.os.ms-windows.misc",
+                          "comp.windows.x")
   val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
                               "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
   val SIM_3_CATS = 3
@@ -131,8 +133,14 @@ object DataConsts {
 object TNG {
   // returns (corpus, stopwrds, # of categories)
   def sim3 () = {
-    (Io.rawCorpus(wrangle.DataConsts.SIM_3_TRAIN_DOCS),
-     Text.stopWords(DataConsts.TNG_WHITELIST),
+    val c1 = Io.rawCorpus(wrangle.DataConsts.SIM_3_TRAIN_DOCS(0))
+    val l1 = Array.fill(c1.length){ wrangle.DataConsts.SIM_3_LABELS(0) }
+    val c2 = Io.rawCorpus(wrangle.DataConsts.SIM_3_TRAIN_DOCS(1))
+    val l2 = Array.fill(c2.length){ wrangle.DataConsts.SIM_3_LABELS(1) }
+    val c3 = Io.rawCorpus(wrangle.DataConsts.SIM_3_TRAIN_DOCS(2))
+    val l3 = Array.fill(c3.length){ wrangle.DataConsts.SIM_3_LABELS(2) }
+    (c1 ++ c2 ++ c3,
+     l1 ++ l2 ++ l3,
      DataConsts.SIM_3_CATS)
   }
 
