@@ -1,5 +1,6 @@
 package tests
 
+import evaluation._
 import lda._
 import stream._
 import wrangle._
@@ -217,6 +218,7 @@ class PfLdaTests extends FunSuite {
     }
 
     // iterate through documents, output accuracy averaged over all particles
+    /*
     for (i <- 0 to map.length-1) {
       var sum:Double = 0
       val mappedIdx = map(i)
@@ -238,14 +240,23 @@ class PfLdaTests extends FunSuite {
             " doesn't necessarily correspond to topic #1")
       println()
     }
+    */
 
-    println("DOCUMENT LABELS:")
-    pflda.particles.particles.map { p => println(p.docLabels) }
+    //println("DOCUMENT LABELS:")
+    //pflda.particles.particles.map { p => println(p.docLabels) }
 
     //pflda.printParticles
     //pflda.printTopics
     pflda.writeTopics("results.txt")
 
+    val mis = Evaluation.nmi(pflda, Array("nature", "nature", "nature",
+                                          "nature", "nature", "nature",
+                                          "nature", "nature", "finance",
+                                          "finance", "finance", "finance",
+                                          "finance", "finance", "finance",
+                                          "finance"),
+                             Array("nature", "finance"))
+    println(mis.deep)
   }
 
 }

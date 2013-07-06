@@ -1,5 +1,6 @@
 package lda
 
+import evaluation._
 import wrangle._
 
 object Sim3PfParams {
@@ -15,7 +16,7 @@ object Sim3PfParams {
 object RunLda {
   def main (args: Array[String]) {
     println("loading corpus...")
-    val (corpus, sws, cats) = wrangle.TNG.sim3
+    val (corpus, labels, cats) = wrangle.TNG.sim3
     println("building model...")
     val model = new PfLda(cats, Sim3PfParams.alpha, Sim3PfParams.beta,
                           Sim3PfParams.smplSize, Sim3PfParams.numParticles,
@@ -33,5 +34,7 @@ object RunLda {
       //println(i + " " + (System.nanoTime - now))
     }
     model.writeTopics("results.txt")
+
+    Evaluation.nmi(model, labels, wrangle.DataConsts.SIM_3_LABELS)
   }
 }
