@@ -49,6 +49,7 @@ class ParticleTests extends FunSuite {
     */
     pflda.ingestDocs(Array("foo bar", "baz bat"))
     //pflda.printTopics()
+    pflda.particles.particles.map { p => println(p.docLabels) }
     pflda.writeTopics("results.txt")
   }
 
@@ -237,6 +238,9 @@ class PfLdaTests extends FunSuite {
             " doesn't necessarily correspond to topic #1")
       println()
     }
+
+    println("DOCUMENT LABELS:")
+    pflda.particles.particles.map { p => println(p.docLabels) }
 
     //pflda.printParticles
     //pflda.printTopics
