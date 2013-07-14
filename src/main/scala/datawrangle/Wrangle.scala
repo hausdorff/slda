@@ -114,15 +114,22 @@ object DataConsts {
   val TNG_WHITELIST = DATA_DIR + "TNG_WHITELIST"
   val TNG_STOP_WORDS = DATA_DIR + "TNG_STOP_WORDS"
   val ALT_ATHEISM = TNG_TRAIN_DIR + "alt.atheism"
+
   val SIM_3_LABELS = List("comp.graphics", "comp.os.ms-windows.misc",
                           "comp.windows.x")
   val SIM_3_TRAIN_DOCS = List("comp.graphics", "comp.os.ms-windows.misc",
                               "comp.windows.x") map (s => TNG_TRAIN_DIR + s)
   val SIM_3_CATS = 3
+
+  val REL_3_LABELS = List("talk.politics.misc", "talk.politics.guns",
+                          "talk.politics.mideast")
   val REL_3_TRAIN_DOCS = List("talk.politics.misc", "talk.politics.guns",
                               "talk.politics.mideast") map (s =>
                                 TNG_TRAIN_DIR + s)
   val REL_3_CATS = 3
+
+  val DIFF_3_LABELS = List("alt.atheism", "rec.sport.baseball",
+                           "sci.space")
   val DIFF_3_TRAIN_DOCS = List("alt.atheism", "rec.sport.baseball",
                                "sci.space") map (s => TNG_TRAIN_DIR + s)
   val DIFF_3_CATS = 3
