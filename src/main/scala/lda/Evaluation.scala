@@ -3,7 +3,7 @@
 
 package evaluation
 
-import java.io.PrintWriter
+import java.io.{ PrintWriter, File }
 import scala.collection.mutable.{ ArrayBuffer => ArrayBuffer }
 import scala.math
 
